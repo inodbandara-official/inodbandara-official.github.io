@@ -1,9 +1,12 @@
 ### Site Settings ###
 title               : Hera
 description         : >-
-                      I turn coffee :coffee: into code,
-                      use tabs over spaces
-                      and never broke production.
+                      I turn coffee :coffee: into code,<br>
+                      use tabs over spaces<br>
+                      and never broke production.<br>
+                      #FullStacKDev n' A Techie Cinephile
+
+                      
 baseurl             : ""                     # Change to empty quotes if you are hosting your site at <your-username>.github.io directly
 #repository          : YoussefRaafatNasry/portfolYOU     # Change to <your-username>/<your-username>.github.io (or remove it if you don't need remote projects)
 remote_theme        : YoussefRaafatNasry/portfolYOU
