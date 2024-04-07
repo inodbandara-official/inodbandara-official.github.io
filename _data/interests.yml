@@ -1,0 +1,15 @@
+- name:  Movies and Tv series
+  percentage: 90
+  color: secondary
+- name: Reading
+  percentage: 90
+  color: success
+- name: Lyrics Composing
+  percentage: 20
+  color:  danger 
+- name: Drawing
+  percentage: 30
+  color:  warning 
+- name: MMA (Mixed Martial Arts)
+  percentage: 50
+  color: info
