@@ -1,0 +1,43 @@
+- name: HTML5/CSS3
+  percentage: 90
+  color: danger
+
+- name: PHP
+  percentage: 70
+  color:
+  
+- name: Wordpress
+  percentage: 70
+  color: danger
+  
+- name: Python
+  percentage: 95
+  color: secondary
+
+- name: C Programming
+  percentage: 75
+  color: danger  
+
+- name: C++ Programming
+  percentage: 75
+  color: danger
+
+- name: Java
+  percentage: 70
+  color:
+
+- name: C#
+  percentage: 75
+  color: secondary
+  
+- name:  UI/UX Development
+  percentage: 65
+  color: danger
+
+- name: SQL
+  percentage: 70
+  color:
+
+- name: JavaScript
+  percentage: 55
+  color: danger
