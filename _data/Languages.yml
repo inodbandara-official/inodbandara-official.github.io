@@ -1,0 +1,9 @@
+- name:  ENGLISH
+  percentage: 85
+  color: secondary
+- name: SINHALA
+  percentage: 95
+  color: success
+- name: TAMIL
+  percentage: 25
+  color:  danger
