@@ -1,14 +1,14 @@
 ### Site Settings ###
 title               : Hera
 description         : >-
-                      I turn coffee :coffee: into code,<br>
+                      <br>I turn coffee :coffee: into code,<br>
                       use tabs over spaces<br>
                       and never broke production.<br>
                       #FullStacKDev n' A Techie Cinephile
 
                       
 baseurl             : ""                     # Change to empty quotes if you are hosting your site at <your-username>.github.io directly
-#repository          : YoussefRaafatNasry/portfolYOU     # Change to <your-username>/<your-username>.github.io (or remove it if you don't need remote projects)
+#repository          : inodbandara-official/portfolYOU     # Change to <your-username>/<your-username>.github.io (or remove it if you don't need remote projects)
 remote_theme        : inodbandara-official/porti
 open_new_tab        : true                             # Opens external URLs in new tab (works for posts, projects and navbar only)
 
@@ -41,13 +41,13 @@ author:
   linkedin          : inod-bandara-555722228
 # medium            : your_username
 # soundcloud        : your_username
-# spotify           : your_username
+  spotify           : bf0pswvybsrr4j06xglh36sl9
 # stackoverflow     : your_user_id
 # tumblr            : your_username.tumblr.com
 # twitch            : your_username
   twitter           : bandarainod
 # vimeo             : your_username
-# youtube           : vidushan
+# youtube           : your_username
 # keybase           : your_username
 
 
