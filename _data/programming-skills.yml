@@ -15,15 +15,15 @@
   color: secondary
 
 - name: C Programming
-  percentage: 75
+  percentage: 85
   color: danger  
 
 - name: C++ Programming
   percentage: 75
-  color: danger
+  color: secondary
 
 - name: Java
-  percentage: 70
+  percentage: 80
   color:
 
 - name: C#

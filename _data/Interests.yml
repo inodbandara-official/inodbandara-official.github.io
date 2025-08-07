@@ -5,8 +5,8 @@
   percentage: 90
   color: success
 - name: Lyrics Composing
-  percentage: 20
-  color:  danger 
+  percentage: 50
+  color: secondary
 - name: Drawing
   percentage: 30
   color:  warning 
