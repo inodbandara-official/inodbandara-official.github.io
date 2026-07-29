@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>404 — this route has no failover</title>
+<meta name="description" content="404 — the page returned nothing but vibes. It was probably DNS." />
+<!--
+  A 404 with a database would be one more thing to patch. This one is static,
+  honest, and mildly self-aware. If you reached it by typing the URL by hand:
+  respect, but check your spelling. If I broke a link: that one's on me.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body data-keep-title>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav class="nav" id="nav">
+  <a href="index.html" class="brand" data-cursor>SYS<b>://</b><span id="brandName">PORTFOLIO</span></a>
+  <div class="nav-links">
+    <a href="index.html#work"><span class="idx">01</span> Work</a>
+    <a href="impact.html"><span class="idx">02</span> Impact</a>
+    <a href="about.html"><span class="idx">03</span> About</a>
+    <a href="experience.html"><span class="idx">04</span> Experience</a>
+    <a href="index.html#stack"><span class="idx">05</span> Stack</a>
+    <a href="contact.html"><span class="idx">06</span> Contact</a>
+  </div>
+  <div class="nav-tools">
+    <div class="clock"><span id="clock">--:--:--</span> <span class="tz" id="tz">UTC</span></div>
+    <button class="toggle" id="themeToggle" data-cursor>◐ THEME</button>
+    <button class="menu-btn" id="menuBtn" data-cursor>MENU</button>
+  </div>
+</nav>
+
+<div class="overlay" id="overlay">
+  <button class="toggle close" id="overlayClose" data-cursor>CLOSE ✕</button>
+  <a href="index.html#work"><span>01</span>Work</a>
+  <a href="impact.html"><span>02</span>Impact</a>
+  <a href="about.html"><span>03</span>About</a>
+  <a href="experience.html"><span>04</span>Experience</a>
+  <a href="index.html#stack"><span>05</span>Stack</a>
+  <a href="contact.html"><span>06</span>Contact</a>
+</div>
+
+<div class="hud hud-bl"><span class="k">CRSR</span> <span class="v" id="crsr">0.000 · 0.000</span></div>
+<div class="hud hud-br"><span class="k">STAT</span> <span class="v">404</span></div>
+
+<main>
+<header class="nf wrap">
+  <div class="eyebrow reveal"><span class="n">ERR</span> / 404 <span class="line"></span> <span class="tag">— DESTINATION UNREACHABLE</span></div>
+  <h1 class="reveal">404<span class="dot">.</span></h1>
+  <p class="msg reveal">This route has <em>no failover</em>.</p>
+  <p class="sub reveal">The page you asked for returned nothing but vibes. Either it moved, it never existed, or — and I want to be transparent with you here — <b>it was DNS</b>. It's usually DNS.</p>
+
+  <div class="diag reveal" aria-label="mock diagnostic output">$ traceroute <span class="k">the-page-you-wanted</span>
+ 1  index.html            2ms   <span class="ok">ok</span>
+ 2  consensus-reality     4ms   <span class="ok">ok</span>
+ 3  the-page-you-wanted   *  *  *   <span class="bad">unreachable</span>
+<span class="mut">─────────────────────────────────────────</span>
+status: <span class="bad">404 Not Found</span>   cause: <span class="k">probably DNS</span>   confidence: <span class="ok">60%</span>
+<span class="mut">recommended action: turn it off and on again (i.e. go home)</span></div>
+
+  <div class="cta reveal">
+    <a class="btn primary" href="index.html" data-cursor>↩ Take me home</a>
+    <a class="btn" href="index.html#work" data-cursor>◈ See the work</a>
+    <a class="btn" href="#" data-open-term data-cursor>▚ Ask the terminal (try <span style="color:var(--accent)">&nbsp;ls</span>)</a>
+  </div>
+</header>
+</main>
+
+<footer>
+  <span class="c" id="footC"></span>
+  <a href="index.html" class="top" data-cursor>← BACK HOME</a>
+</footer>
+
+<button class="term-launch" id="termLaunch" data-cursor>▚ terminal</button>
+<div class="term" id="term" role="dialog" aria-label="Interactive terminal">
+  <div class="term__bar">
+    <div class="dots"><i class="r" id="termClose" title="close"></i><i></i><i></i></div>
+    <span class="ttl">— visitor@portfolio: ~ —</span>
+  </div>
+  <div class="term__body" id="termBody"></div>
+  <div class="term__input"><span class="pr">➜ ~</span><input id="termInput" autocomplete="off" spellcheck="false" aria-label="terminal command input" /></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

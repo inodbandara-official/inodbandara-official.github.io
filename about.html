@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>About — Systems &amp; Security Engineer</title>
+<meta name="description" content="About — a systems and security engineer who owns the failover, the hardening, and the observability." />
+<!--
+  You inspected the About page. That's either due diligence or stalking —
+  and honestly, for a hire, I want the person who does both. Carry on.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body id="aboutPage">
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav class="nav" id="nav">
+  <a href="index.html" class="brand" data-cursor>SYS<b>://</b><span id="brandName">PORTFOLIO</span></a>
+  <div class="nav-links">
+    <a href="index.html#work"><span class="idx">01</span> Work</a>
+    <a href="impact.html"><span class="idx">02</span> Impact</a>
+    <a href="about.html" aria-current="page"><span class="idx">03</span> About</a>
+    <a href="experience.html"><span class="idx">04</span> Experience</a>
+    <a href="index.html#stack"><span class="idx">05</span> Stack</a>
+    <a href="contact.html"><span class="idx">06</span> Contact</a>
+  </div>
+  <div class="nav-tools">
+    <div class="clock"><span id="clock">--:--:--</span> <span class="tz" id="tz">UTC</span></div>
+    <button class="toggle" id="themeToggle" data-cursor>◐ THEME</button>
+    <button class="menu-btn" id="menuBtn" data-cursor>MENU</button>
+  </div>
+</nav>
+
+<div class="overlay" id="overlay">
+  <button class="toggle close" id="overlayClose" data-cursor>CLOSE ✕</button>
+  <a href="index.html#work"><span>01</span>Work</a>
+  <a href="impact.html"><span>02</span>Impact</a>
+  <a href="about.html"><span>03</span>About</a>
+  <a href="experience.html"><span>04</span>Experience</a>
+  <a href="index.html#stack"><span>05</span>Stack</a>
+  <a href="contact.html"><span>06</span>Contact</a>
+</div>
+
+<div class="hud hud-bl"><span class="k">CRSR</span> <span class="v" id="crsr">0.000 · 0.000</span></div>
+<div class="hud hud-br"><span class="k">SCRL</span> <span class="v" id="scrl">0.00</span> <span class="k">%</span></div>
+
+<main>
+
+<!-- ABOUT HERO: statement + portrait -->
+<header class="page-hero wrap">
+  <div class="eyebrow reveal"><span class="n">03</span> / About <span class="line"></span> <span class="tag">— THE HUMAN RUNNING THE HUMANS' SERVERS</span></div>
+  <div class="ah">
+    <div class="reveal">
+      <h1 class="ah__statement" id="aStatement"></h1>
+      <p class="ah__standfirst" id="aStandfirst"></p>
+      <div class="ah__meta">
+        <span><span class="k">ROLE</span> &nbsp;<span class="v" id="aRole"></span></span>
+        <span><span class="k">LOC</span> &nbsp;<span class="v" id="aLoc"></span></span>
+        <span><span class="k">GEO</span> &nbsp;<span class="v" id="aCoords"></span></span>
+        <span><span class="k">STATUS</span> &nbsp;<span class="v acc" id="aStatus"></span></span>
+      </div>
+      <div class="cta">
+        <a class="btn primary" data-resume href="#" data-cursor>↧ Résumé / CV</a>
+        <a class="btn" href="contact.html" data-cursor>✉ Get in touch</a>
+      </div>
+    </div>
+    <div class="reveal">
+      <!-- IMAGE SLOT: set about.photo in app.js to fill this -->
+      <div class="portrait" id="portrait" data-cursor></div>
+    </div>
+  </div>
+</header>
+
+<div class="marquee" aria-hidden="true" style="margin-top:clamp(60px,9vw,110px)"><div class="marquee__inner" id="marquee"></div></div>
+
+<!-- NARRATIVE -->
+<section class="block wrap">
+  <div class="eyebrow reveal"><span class="n">/</span> Story <span class="line"></span> <span class="tag">— THE LONG VERSION (BRING COFFEE)</span></div>
+  <div class="split">
+    <div class="bio reveal" id="bio"></div>
+    <div class="reveal">
+      <div class="dont" style="margin-top:6px">
+        <h4>What I don't do</h4>
+        <ul id="aDont"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRINCIPLES -->
+<section class="block wrap">
+  <div class="eyebrow reveal"><span class="n">/</span> Principles <span class="line"></span> <span class="tag">— NON-NEGOTIABLES</span></div>
+  <div class="impact-grid reveal" id="principles"></div>
+</section>
+
+<!-- EDUCATION -->
+<section class="block wrap">
+  <div class="eyebrow reveal"><span class="n">/</span> Education &amp; Practice <span class="line"></span> <span class="tag">— RECEIPTS</span></div>
+  <div id="education"></div>
+</section>
+
+<!-- CLOSING CTA -->
+<section class="wrap">
+  <div class="cta-band">
+    <h2>Now you know the <em>how</em>.<br>See the <em>what</em>.</h2>
+    <div class="links">
+      <a href="index.html#work" data-cursor>Selected work</a>
+      <a href="contact.html" data-cursor>Start a conversation</a>
+      <a href="#" data-open-term data-cursor>Open the terminal</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span class="c" id="footC"></span>
+  <a href="index.html" class="top" data-cursor>← BACK HOME</a>
+</footer>
+
+<button class="term-launch" id="termLaunch" data-cursor>▚ terminal</button>
+<div class="term" id="term" role="dialog" aria-label="Interactive terminal">
+  <div class="term__bar">
+    <div class="dots"><i class="r" id="termClose" title="close"></i><i></i><i></i></div>
+    <span class="ttl">— visitor@portfolio: ~ —</span>
+  </div>
+  <div class="term__body" id="termBody"></div>
+  <div class="term__input"><span class="pr">➜ ~</span><input id="termInput" autocomplete="off" spellcheck="false" aria-label="terminal command input" /></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

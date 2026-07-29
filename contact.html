@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contact — Systems &amp; Security Engineer</title>
+<meta name="description" content="Get in touch — hiring, infrastructure problems, or comparing notes on hardening and homelabs." />
+<!--
+  This form has no backend. It opens your mail client and gets out of the way.
+  A contact form with a database would be one more thing to patch, and I have
+  enough of those. Minimalism as a security posture. Also as a personality.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body id="contactPage">
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav class="nav" id="nav">
+  <a href="index.html" class="brand" data-cursor>SYS<b>://</b><span id="brandName">PORTFOLIO</span></a>
+  <div class="nav-links">
+    <a href="index.html#work"><span class="idx">01</span> Work</a>
+    <a href="impact.html"><span class="idx">02</span> Impact</a>
+    <a href="about.html"><span class="idx">03</span> About</a>
+    <a href="experience.html"><span class="idx">04</span> Experience</a>
+    <a href="index.html#stack"><span class="idx">05</span> Stack</a>
+    <a href="contact.html" aria-current="page"><span class="idx">06</span> Contact</a>
+  </div>
+  <div class="nav-tools">
+    <div class="clock"><span id="clock">--:--:--</span> <span class="tz" id="tz">UTC</span></div>
+    <button class="toggle" id="themeToggle" data-cursor>◐ THEME</button>
+    <button class="menu-btn" id="menuBtn" data-cursor>MENU</button>
+  </div>
+</nav>
+
+<div class="overlay" id="overlay">
+  <button class="toggle close" id="overlayClose" data-cursor>CLOSE ✕</button>
+  <a href="index.html#work"><span>01</span>Work</a>
+  <a href="impact.html"><span>02</span>Impact</a>
+  <a href="about.html"><span>03</span>About</a>
+  <a href="experience.html"><span>04</span>Experience</a>
+  <a href="index.html#stack"><span>05</span>Stack</a>
+  <a href="contact.html"><span>06</span>Contact</a>
+</div>
+
+<div class="hud hud-bl"><span class="k">CRSR</span> <span class="v" id="crsr">0.000 · 0.000</span></div>
+<div class="hud hud-br"><span class="k">SCRL</span> <span class="v" id="scrl">0.00</span> <span class="k">%</span></div>
+
+<main>
+
+<header class="contact-hero wrap contact">
+  <div class="eyebrow reveal"><span class="n">06</span> / Contact <span class="line"></span> <span class="tag">— HARD PROBLEMS WELCOME, VAGUE ONES TOLERATED</span></div>
+  <h1 class="reveal" id="cHeadline"></h1>
+  <p class="lede reveal" id="cLede"></p>
+
+  <div class="contact-cols">
+    <!-- LEFT: email + info + fits -->
+    <div class="reveal">
+      <div class="mail-row">
+        <a class="mail-link" id="cMail" data-mailto href="#" data-cursor></a>
+        <button class="copy-btn" data-copy-email data-cursor>⧉ copy</button>
+      </div>
+
+      <div class="socials" data-socials></div>
+
+      <div class="info-list" id="cInfo"></div>
+
+      <div class="fits">
+        <div class="fit good"><h4>Good fit</h4><ul id="cGood"></ul></div>
+        <div class="fit no"><h4>Not a fit</h4><ul id="cNo"></ul></div>
+      </div>
+
+      <p class="term-nudge">Prefer the shell? Type <b data-term-trigger>contact</b> in the terminal — or press <b data-term-trigger>`</b>. · <span id="cCoffee"></span></p>
+    </div>
+
+    <!-- RIGHT: form -->
+    <div class="form reveal">
+      <label for="fname">Name</label>
+      <input id="fname" type="text" placeholder="Your name" />
+      <label for="femail">Email</label>
+      <input id="femail" type="email" placeholder="you@company.com" />
+      <label for="ftopic">Topic</label>
+      <select id="ftopic">
+        <option value="">Select…</option>
+        <option>Hiring / a role</option>
+        <option>An infrastructure problem</option>
+        <option>Security / hardening</option>
+        <option>Just saying hi</option>
+        <option>Confirming that, yes, it was DNS</option>
+      </select>
+      <label for="fmsg">Message</label>
+      <textarea id="fmsg" placeholder="What are you building?"></textarea>
+      <button class="btn primary" id="sendBtn" data-cursor style="width:100%; justify-content:center">Send ↗</button>
+      <p style="font-family:var(--ff-mono); font-size:11px; color:var(--faint); margin-top:14px; margin-bottom:0">Opens your mail client — nothing is sent to a server. (I'm a static site. I have trust issues with backends.)</p>
+    </div>
+  </div>
+</header>
+
+</main>
+
+<footer>
+  <span class="c" id="footC"></span>
+  <a href="index.html" class="top" data-cursor>← BACK HOME</a>
+</footer>
+
+<button class="term-launch" id="termLaunch" data-cursor>▚ terminal</button>
+<div class="term" id="term" role="dialog" aria-label="Interactive terminal">
+  <div class="term__bar">
+    <div class="dots"><i class="r" id="termClose" title="close"></i><i></i><i></i></div>
+    <span class="ttl">— visitor@portfolio: ~ —</span>
+  </div>
+  <div class="term__body" id="termBody"></div>
+  <div class="term__input"><span class="pr">➜ ~</span><input id="termInput" autocomplete="off" spellcheck="false" aria-label="terminal command input" /></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

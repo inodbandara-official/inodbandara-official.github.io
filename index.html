@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Systems &amp; Security Engineer — Portfolio</title>
+<meta name="description" content="Systems & Security Engineer. Infrastructure that holds under load — cloud, Linux, Kubernetes, hardening." />
+<!--
+  Reading the source? Of course you are. It's hand-written, framework-free,
+  and quietly proud of it. The interactive bits live in app.js. The jokes
+  are load-bearing. If you're hiring: the terminal accepts `sudo hire`.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav class="nav" id="nav">
+  <a href="#top" class="brand" data-cursor>SYS<b>://</b><span id="brandName">PORTFOLIO</span></a>
+  <div class="nav-links">
+    <a href="#work"><span class="idx">01</span> Work</a>
+    <a href="impact.html"><span class="idx">02</span> Impact</a>
+    <a href="about.html"><span class="idx">03</span> About</a>
+    <a href="experience.html"><span class="idx">04</span> Experience</a>
+    <a href="#stack"><span class="idx">05</span> Stack</a>
+    <a href="contact.html"><span class="idx">06</span> Contact</a>
+  </div>
+  <div class="nav-tools">
+    <div class="clock"><span id="clock">--:--:--</span> <span class="tz" id="tz">UTC</span></div>
+    <button class="toggle" id="themeToggle" data-cursor>◐ THEME</button>
+    <button class="menu-btn" id="menuBtn" data-cursor>MENU</button>
+  </div>
+</nav>
+
+<div class="overlay" id="overlay">
+  <button class="toggle close" id="overlayClose" data-cursor>CLOSE ✕</button>
+  <a href="#work"><span>01</span>Work</a>
+  <a href="impact.html"><span>02</span>Impact</a>
+  <a href="about.html"><span>03</span>About</a>
+  <a href="experience.html"><span>04</span>Experience</a>
+  <a href="#stack"><span>05</span>Stack</a>
+  <a href="contact.html"><span>06</span>Contact</a>
+</div>
+
+<div class="hud hud-bl"><span class="k">CRSR</span> <span class="v" id="crsr">0.000 · 0.000</span></div>
+<div class="hud hud-br"><span class="k">SCRL</span> <span class="v" id="scrl">0.00</span> <span class="k">%</span></div>
+
+<a id="top"></a>
+<main>
+
+<header class="hero wrap">
+  <p class="thesis" id="thesis"></p>
+  <h1><span class="l1" id="nameL1">YOUR</span><span class="l2" id="nameL2">NAME<span class="dot">.</span></span></h1>
+  <div class="meta-row">
+    <span class="m" id="roleMeta"></span>
+    <span class="m">LOCATION — <b id="locMeta"></b></span>
+    <span class="status" id="statusMeta"></span>
+  </div>
+  <div class="cta">
+    <button class="btn primary" data-open-term data-cursor>▚ Open terminal</button>
+    <a class="btn" data-mailto href="#" data-cursor>✉ Email me</a>
+    <a class="btn" data-resume href="#" data-cursor>↧ Résumé / CV</a>
+    <a class="btn" href="about.html" data-cursor>◈ About me</a>
+  </div>
+  <div class="scroll-cue"><span class="bar"></span> SCROLL</div>
+</header>
+
+<div class="marquee" aria-hidden="true"><div class="marquee__inner" id="marquee"></div></div>
+
+<section class="block wrap" id="work">
+  <div class="eyebrow reveal"><span class="n">01</span> / Selected Work <span class="line"></span> <span class="tag" id="workCount">— PROJECTS</span></div>
+  <div id="projects"></div>
+</section>
+
+<section class="block wrap" id="impact">
+  <div class="eyebrow reveal"><span class="n">02</span> / Impact <span class="line"></span> <span class="tag">— MEASURED, NOT MANIFESTED</span></div>
+  <div class="impact-grid reveal" id="impactGrid"></div>
+</section>
+
+<section class="block wrap" id="about">
+  <div class="eyebrow reveal"><span class="n">03</span> / About <span class="line"></span> <span class="tag">— THE ELEVATOR PITCH</span></div>
+  <div class="about-grid">
+    <div class="reveal">
+      <p class="about-lead">I build the parts of a system nobody wants to own: the <em>failover, the hardening, the observability</em> — the layer that decides whether it survives production or dies in the demo.</p>
+      <div class="about-body">
+        <p>My background is hands-on infrastructure — Linux and Windows administration, cloud provisioning, database and middleware setup, and endpoint security for teams without a dedicated SOC. I like the messy space between "it works on my machine" and "it holds at 3am under real load."</p>
+        <p>I care about proof over claims. Every number on this site is something I measured, not something I hoped for on a slide.</p>
+      </div>
+      <div class="dont">
+        <h4>What I don't do</h4>
+        <ul id="dontList"></ul>
+      </div>
+      <p style="margin-top:26px"><a class="btn" href="about.html" data-cursor>Read the long version →</a></p>
+    </div>
+    <div class="comp reveal">
+      <h4>Core competencies</h4>
+      <ul id="compList"></ul>
+    </div>
+  </div>
+</section>
+
+<section class="block wrap" id="experience">
+  <div class="eyebrow reveal"><span class="n">04</span> / Experience <span class="line"></span> <span class="tag">— HOW I ENDED UP HERE</span></div>
+  <div class="tl" id="timeline"></div>
+</section>
+
+<section class="block wrap" id="stack">
+  <div class="eyebrow reveal"><span class="n">05</span> / Stack <span class="line"></span> <span class="tag">— WHAT I RUN (AND WHAT RUNS ME)</span></div>
+  <div class="stack-grid" id="stackGrid"></div>
+</section>
+
+<section class="block wrap contact" id="contact">
+  <div class="eyebrow reveal"><span class="n">06</span> / Contact <span class="line"></span> <span class="tag">— HARD PROBLEMS WELCOME</span></div>
+  <div class="about-grid">
+    <div class="reveal">
+      <h2>Let's talk.</h2>
+      <p class="lede">Hiring, a gnarly infrastructure problem, or you just want to compare notes — the full contact page has everything.</p>
+      <a class="mail-link" data-mailto data-mail-text href="#" data-cursor>you@example.com</a>
+      <div class="socials" data-socials></div>
+      <p style="margin-top:28px"><a class="btn primary" href="contact.html" data-cursor>Go to contact →</a></p>
+    </div>
+    <div class="comp reveal">
+      <h4>Shortcuts (for the impatient)</h4>
+      <ul>
+        <li><a href="about.html" data-cursor>About / the long version</a><span class="c">↗</span></li>
+        <li><a href="contact.html" data-cursor>Contact page</a><span class="c">↗</span></li>
+        <li><a href="#" data-open-term data-cursor>Open the terminal</a><span class="c">▚</span></li>
+        <li><a data-resume href="#" data-cursor>Résumé / CV</a><span class="c">↧</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span class="c" id="footC"></span>
+  <a href="#top" class="top" data-cursor>BACK TO TOP ↑</a>
+</footer>
+
+<button class="term-launch" id="termLaunch" data-cursor>▚ terminal</button>
+<div class="term" id="term" role="dialog" aria-label="Interactive terminal">
+  <div class="term__bar">
+    <div class="dots"><i class="r" id="termClose" title="close"></i><i></i><i></i></div>
+    <span class="ttl">— visitor@portfolio: ~ —</span>
+  </div>
+  <div class="term__body" id="termBody"></div>
+  <div class="term__input"><span class="pr">➜ ~</span><input id="termInput" autocomplete="off" spellcheck="false" aria-label="terminal command input" /></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
