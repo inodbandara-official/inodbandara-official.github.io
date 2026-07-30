@@ -9,6 +9,7 @@
   --text:#e7e5df; --muted:#8b909a; --faint:#565b64;
   --accent:#f5b841; --accent-ink:#0a0b0d; --accent-dim:rgba(245,184,65,.14);
   --maxw:1280px;
+  --gutter: clamp(22px, 6vw, 42px);   /* notch-safe side padding */
   --ff-display:"Space Grotesk",system-ui,sans-serif;
   --ff-body:"Inter",system-ui,sans-serif;
   --ff-mono:"JetBrains Mono",ui-monospace,monospace;
@@ -95,7 +96,10 @@ body::before{
 .overlay .close{position:absolute; top:18px; right:24px}
 
 /* ---------- layout ---------- */
-.wrap{max-width:var(--maxw); margin:0 auto; padding:0 clamp(20px,4vw,40px); position:relative; z-index:1}
+.wrap{max-width:var(--maxw); margin:0 auto; position:relative; z-index:1;
+  padding-block:0;
+  padding-left:max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right:max(var(--gutter), env(safe-area-inset-right, 0px));}
 section{position:relative; z-index:1}
 .eyebrow{display:flex; align-items:center; gap:14px; font-family:var(--ff-mono); font-size:12px; letter-spacing:.14em;
   color:var(--muted); text-transform:uppercase; margin-bottom:38px}
@@ -148,7 +152,7 @@ section{position:relative; z-index:1}
 @keyframes scroll-x{to{transform:translateX(-50%)}}
 
 /* ---------- section shell ---------- */
-.block{padding:clamp(80px,11vw,150px) 0}
+.block{padding-block:clamp(80px,11vw,150px)}
 
 /* ---------- work ---------- */
 .project{border-top:1px solid var(--line); padding:34px 0}
@@ -406,3 +410,120 @@ footer a.top:hover{color:var(--accent)}
 .diag{font-family:var(--ff-mono); font-size:12.5px; line-height:1.75; border:1px solid var(--line-2); border-left:2px solid var(--accent);
   background:var(--bg-1); padding:18px 20px; margin-bottom:34px; white-space:pre-wrap; word-break:break-word; max-width:640px}
 .diag .ok{color:var(--accent)} .diag .bad{color:#e0533b} .diag .mut{color:var(--faint)} .diag .k{color:var(--muted)}
+
+/* =============================================================================
+   MOBILE & RESPONSIVE REFINEMENTS  —  comfortable gutters, no edge-touching,
+   no horizontal scroll, everything stacks cleanly on phones.
+   ============================================================================= */
+
+/* hard stop against any accidental sideways scroll */
+html, body{ max-width:100%; overflow-x:hidden; }
+main, section, header, footer{ min-width:0; }
+
+/* ONE consistent, notch-safe gutter everywhere real content lives */
+.wrap{
+  padding-left:  max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+}
+.nav{
+  padding-left:  max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+}
+footer{
+  padding-left:  max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+}
+
+/* media & blocks never exceed their column; long strings wrap instead of scroll */
+img, .portrait, .shot, .term, .diag, pre{ max-width:100%; }
+.chips, .socials, .meta-row, .case-meta, .ah__meta, .eyebrow, .cta{ flex-wrap:wrap; }
+.mail-link, .info-row .v, .diag, .term__line, .project__summary,
+.tl__pts li, .bio p, .case-section p{ overflow-wrap:anywhere; }
+
+@media (max-width:900px){
+  .nav{ padding-top:14px; padding-bottom:14px; }
+}
+
+/* the decorative bottom HUD collided with the terminal button on phones */
+@media (max-width:720px){ .hud{ display:none; } }
+
+/* ---------- phones ---------- */
+@media (max-width:640px){
+  .block{ padding-block: clamp(56px,14vw,92px); }
+  .page-hero{ padding-top: clamp(104px,26vw,150px); }
+
+  .hero{ padding-top:96px; min-height:92svh; }
+  .hero h1{ font-size: clamp(3rem, 17vw, 6rem); }
+  .hero .thesis{ font-size:13px; margin-bottom:22px; }
+  .meta-row{ gap:10px 20px; font-size:12px; margin-top:30px; }
+  .cta{ gap:10px; margin-top:32px; }
+  .btn{ padding:12px 18px; font-size:12px; }
+  .eyebrow{ margin-bottom:28px; font-size:11px; }
+
+  /* every two-column grid collapses to one */
+  .about-grid, .split, .contact-cols, .contact-grid, .stack-grid{ grid-template-columns:1fr; gap:34px; }
+  .impact-grid{ grid-template-columns:1fr 1fr; }
+  .gallery, .project__detail{ grid-template-columns:1fr; }
+
+  /* headings shrink so they never crowd the gutter */
+  .about-lead{ font-size:clamp(1.3rem,5.5vw,1.8rem); }
+  .ah__statement{ font-size:clamp(1.9rem,8.5vw,3rem); }
+  .contact h2{ font-size:clamp(2rem,11vw,3rem); }
+  .contact-hero h1{ font-size:clamp(2.6rem,13vw,5rem); }
+  .case-hero h1{ font-size:clamp(2.2rem,11vw,4rem); }
+  .case-hero .tagline{ font-size:1.1rem; }
+  .case-section p, .bio p, .tldr p{ font-size:15.5px; }
+  .cta-band{ padding: clamp(48px,14vw,90px) 0; gap:22px; }
+  .cta-band h2{ font-size:clamp(1.9rem,9vw,3rem); }
+  .nf h1{ font-size:clamp(5rem,32vw,9rem); }
+  .marquee span{ font-size:1.5rem; padding:0 20px; }
+
+  /* rows that were multi-column stack */
+  .project__head{ grid-template-columns:auto 1fr; }
+  .project__yr{ grid-column:1/-1; text-align:left; margin-top:4px; }
+  .tl__item{ grid-template-columns:1fr; gap:8px; }
+  .edu__item{ grid-template-columns:1fr; gap:6px; }
+  .case-meta{ gap:10px 20px; }
+
+  /* terminal spans the screen and clears the home-bar safe area */
+  .term{ left:12px; right:12px; width:auto; bottom:max(12px, env(safe-area-inset-bottom,0px)); height:min(70vh,440px); }
+  .term-launch{ right:14px; bottom:max(14px, env(safe-area-inset-bottom,0px)); }
+
+  footer{ flex-direction:column; align-items:flex-start; gap:10px; }
+}
+
+/* ---------- small phones ---------- */
+@media (max-width:430px){
+  .impact-grid{ grid-template-columns:1fr; }
+  .hero h1{ font-size: clamp(2.6rem, 18vw, 5rem); letter-spacing:-.02em; }
+  .marquee span{ font-size:1.25rem; padding:0 16px; }
+  .nav .brand{ font-size:11px; }
+  .toggle, .menu-btn{ padding:6px 10px; font-size:10px; letter-spacing:.05em; }
+}
+
+/* =============================================================================
+   STACK PAGE — tech icon wall (monochrome silhouettes, theme-safe, bloom on hover)
+   ============================================================================= */
+.tech-wrap{ display:flex; flex-direction:column; gap:clamp(30px,5vw,48px); }
+.tech-group h4{ font-family:var(--ff-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:10px; }
+.tech-group h4 .tg-count{ color:var(--faint); font-size:10px; }
+.tech-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(102px,1fr)); gap:12px; }
+.tech{ position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+  padding:22px 12px 16px; border:1px solid var(--line); background:var(--bg-1); border-radius:2px;
+  transition:border-color .3s var(--ease), background .3s var(--ease), transform .3s var(--ease); }
+.tech:hover{ border-color:var(--accent); background:var(--bg-2); transform:translateY(-3px); }
+.tech .tk-idx{ position:absolute; top:7px; left:9px; font-family:var(--ff-mono); font-size:9px; color:var(--faint); }
+.tech img{ width:40px; height:40px; object-fit:contain;
+  filter:grayscale(1) brightness(0) invert(0.72);   /* uniform light silhouette on dark */
+  transition:filter .3s var(--ease), transform .35s var(--ease); }
+.tech:hover img{ filter:grayscale(1) brightness(0) invert(1); transform:scale(1.12); }
+html[data-theme="light"] .tech img{ filter:grayscale(1) brightness(0) invert(0.2); }   /* dark silhouette on light */
+html[data-theme="light"] .tech:hover img{ filter:grayscale(1) brightness(0) invert(0); }
+.tech .tk-n{ font-family:var(--ff-mono); font-size:11px; letter-spacing:.02em; color:var(--muted); text-align:center; }
+.tech:hover .tk-n{ color:var(--text); }
+/* graceful fallback when an icon fails to load */
+.tech.noicon img{ display:none; }
+.tech.noicon::after{ content:"▪"; color:var(--accent); font-size:26px; line-height:40px; height:40px; display:flex; align-items:center; }
+@media (max-width:430px){ .tech-grid{ grid-template-columns:repeat(auto-fill, minmax(84px,1fr)); gap:9px; } .tech{ padding:18px 8px 13px; } .tech img{ width:34px; height:34px; } }

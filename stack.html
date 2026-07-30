@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>404 — this route has no failover</title>
-<meta name="description" content="404 — the page returned nothing but vibes. It was probably DNS." />
+<title>Stack — the toolbox</title>
+<meta name="description" content="The stack — languages, frameworks, databases, and the infrastructure tools I run day to day." />
 <!--
-  A 404 with a database would be one more thing to patch. This one is static,
-  honest, and mildly self-aware. If you reached it by typing the URL by hand:
-  respect, but check your spelling. If I broke a link: that one's on me.
+  Icons are monochrome on purpose — a wall of brand colours is a ransom note,
+  not a design. They bloom to full contrast on hover. It was, briefly, DNS.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="/styles.css" />
 </head>
-<body data-keep-title>
+<body id="stackPage" data-keep-title>
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
@@ -28,7 +28,7 @@
     <a href="/impact"><span class="idx">02</span> Impact</a>
     <a href="/about"><span class="idx">03</span> About</a>
     <a href="/experience"><span class="idx">04</span> Experience</a>
-    <a href="/stack"><span class="idx">05</span> Stack</a>
+    <a href="/stack" aria-current="page"><span class="idx">05</span> Stack</a>
     <a href="/contact"><span class="idx">06</span> Contact</a>
   </div>
   <div class="nav-tools">
@@ -49,29 +49,37 @@
 </div>
 
 <div class="hud hud-bl"><span class="k">CRSR</span> <span class="v" id="crsr">0.000 · 0.000</span></div>
-<div class="hud hud-br"><span class="k">STAT</span> <span class="v">404</span></div>
+<div class="hud hud-br"><span class="k">SCRL</span> <span class="v" id="scrl">0.00</span> <span class="k">%</span></div>
 
 <main>
-<header class="nf wrap">
-  <div class="eyebrow reveal"><span class="n">ERR</span> / 404 <span class="line"></span> <span class="tag">— DESTINATION UNREACHABLE</span></div>
-  <h1 class="reveal">404<span class="dot">.</span></h1>
-  <p class="msg reveal">This route has <em>no failover</em>.</p>
-  <p class="sub reveal">The page you asked for returned nothing but vibes. Either it moved, it never existed, or — and I want to be transparent with you here — <b>it was DNS</b>. It's usually DNS.</p>
-
-  <div class="diag reveal" aria-label="mock diagnostic output">$ traceroute <span class="k">the-page-you-wanted</span>
- 1  index.html            2ms   <span class="ok">ok</span>
- 2  consensus-reality     4ms   <span class="ok">ok</span>
- 3  the-page-you-wanted   *  *  *   <span class="bad">unreachable</span>
-<span class="mut">─────────────────────────────────────────</span>
-status: <span class="bad">404 Not Found</span>   cause: <span class="k">probably DNS</span>   confidence: <span class="ok">60%</span>
-<span class="mut">recommended action: turn it off and on again (i.e. go home)</span></div>
-
-  <div class="cta reveal">
-    <a class="btn primary" href="/" data-cursor>↩ Take me home</a>
-    <a class="btn" href="/work" data-cursor>◈ See the work</a>
-    <a class="btn" href="#" data-open-term data-cursor>▚ Ask the terminal (try <span style="color:var(--accent)">&nbsp;ls</span>)</a>
-  </div>
+<header class="page-hero wrap">
+  <div class="eyebrow reveal"><span class="n">05</span> / Stack <span class="line"></span> <span class="tag">— WHAT I RUN (AND WHAT RUNS ME)</span></div>
+  <h1 style="font-family:var(--ff-display);font-weight:600;font-size:clamp(2.6rem,9vw,7rem);letter-spacing:-.03em;line-height:.9">Stack<span style="color:var(--accent)">.</span></h1>
+  <p class="ah__standfirst reveal" style="margin-top:22px">The toolbox — languages, frameworks, databases, and the infrastructure I actually reach for. Hover any tile to bring it to life.</p>
 </header>
+
+<!-- ICON WALL -->
+<section class="block wrap" style="padding-top:clamp(36px,6vw,64px)">
+  <div class="eyebrow reveal"><span class="n">/</span> Technologies <span class="line"></span> <span class="tag">— THE FULL TOOLBOX</span></div>
+  <div class="tech-wrap" id="techGrid"></div>
+</section>
+
+<!-- CURATED STACK (kept from before) -->
+<section class="block wrap" style="padding-top:0">
+  <div class="eyebrow reveal"><span class="n">/</span> Day to day <span class="line"></span> <span class="tag">— WHAT I ACTUALLY RUN</span></div>
+  <div class="stack-grid" id="stackGrid"></div>
+</section>
+
+<section class="wrap">
+  <div class="cta-band">
+    <h2>Tools are tools.<br>Let's build the <em>system</em>.</h2>
+    <div class="links">
+      <a href="/work" data-cursor>See the work</a>
+      <a href="/experience" data-cursor>The experience</a>
+      <a href="/contact" data-cursor>Get in touch</a>
+    </div>
+  </div>
+</section>
 </main>
 
 <footer>

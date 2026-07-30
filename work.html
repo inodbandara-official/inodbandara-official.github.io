@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>About — Systems &amp; Security Engineer</title>
-<meta name="description" content="About — a systems and security engineer who owns the failover, the hardening, and the observability." />
+<title>Work — selected case studies</title>
+<meta name="description" content="Selected work — infrastructure, security, and systems projects, each with the full story." />
 <!--
-  You inspected the About page. That's either due diligence or stalking —
-  and honestly, for a hire, I want the person who does both. Carry on.
+  Every project here shipped and survived contact with production. The ones
+  under NDA survived too; they're just shy. → sudo hire
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,7 +15,7 @@
 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="/styles.css" />
 </head>
-<body id="aboutPage">
+<body id="workPage" data-keep-title>
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
@@ -23,9 +23,9 @@
 <nav class="nav" id="nav">
   <a href="/" class="brand" data-cursor>SYS<b>://</b><span id="brandName">PORTFOLIO</span></a>
   <div class="nav-links">
-    <a href="/work"><span class="idx">01</span> Work</a>
+    <a href="/work" aria-current="page"><span class="idx">01</span> Work</a>
     <a href="/impact"><span class="idx">02</span> Impact</a>
-    <a href="/about" aria-current="page"><span class="idx">03</span> About</a>
+    <a href="/about"><span class="idx">03</span> About</a>
     <a href="/experience"><span class="idx">04</span> Experience</a>
     <a href="/stack"><span class="idx">05</span> Stack</a>
     <a href="/contact"><span class="idx">06</span> Contact</a>
@@ -51,72 +51,26 @@
 <div class="hud hud-br"><span class="k">SCRL</span> <span class="v" id="scrl">0.00</span> <span class="k">%</span></div>
 
 <main>
-
-<!-- ABOUT HERO: statement + portrait -->
 <header class="page-hero wrap">
-  <div class="eyebrow reveal"><span class="n">03</span> / About <span class="line"></span> <span class="tag">— THE HUMAN RUNNING THE HUMANS' SERVERS</span></div>
-  <div class="ah">
-    <div class="reveal">
-      <h1 class="ah__statement" id="aStatement"></h1>
-      <p class="ah__standfirst" id="aStandfirst"></p>
-      <div class="ah__meta">
-        <span><span class="k">ROLE</span> &nbsp;<span class="v" id="aRole"></span></span>
-        <span><span class="k">LOC</span> &nbsp;<span class="v" id="aLoc"></span></span>
-        <span><span class="k">GEO</span> &nbsp;<span class="v" id="aCoords"></span></span>
-        <span><span class="k">STATUS</span> &nbsp;<span class="v acc" id="aStatus"></span></span>
-      </div>
-      <div class="cta">
-        <a class="btn primary" data-resume href="#" data-cursor>↧ Résumé / CV</a>
-        <a class="btn" href="/contact" data-cursor>✉ Get in touch</a>
-      </div>
-    </div>
-    <div class="reveal">
-      <!-- IMAGE SLOT: set about.photo in app.js to fill this -->
-      <div class="portrait" id="portrait" data-cursor></div>
-    </div>
-  </div>
+  <div class="eyebrow reveal"><span class="n">01</span> / Work <span class="line"></span> <span class="tag" id="workCount">— PROJECTS</span></div>
+  <h1 style="font-family:var(--ff-display);font-weight:600;font-size:clamp(2.6rem,9vw,7rem);letter-spacing:-.03em;line-height:.9">Work<span style="color:var(--accent)">.</span></h1>
+  <p class="ah__standfirst reveal" style="margin-top:22px">The projects I can talk about — each one expandable here, with the full context → approach → system → outcome a click away.</p>
 </header>
 
-<div class="marquee" aria-hidden="true" style="margin-top:clamp(60px,9vw,110px)"><div class="marquee__inner" id="marquee"></div></div>
-
-<!-- NARRATIVE -->
-<section class="block wrap">
-  <div class="eyebrow reveal"><span class="n">/</span> Story <span class="line"></span> <span class="tag">— THE LONG VERSION (BRING COFFEE)</span></div>
-  <div class="split">
-    <div class="bio reveal" id="bio"></div>
-    <div class="reveal">
-      <div class="dont" style="margin-top:6px">
-        <h4>What I don't do</h4>
-        <ul id="aDont"></ul>
-      </div>
-    </div>
-  </div>
+<section class="block wrap" style="padding-top:clamp(30px,5vw,60px)">
+  <div id="projects"></div>
 </section>
 
-<!-- PRINCIPLES -->
-<section class="block wrap">
-  <div class="eyebrow reveal"><span class="n">/</span> Principles <span class="line"></span> <span class="tag">— NON-NEGOTIABLES</span></div>
-  <div class="impact-grid reveal" id="principles"></div>
-</section>
-
-<!-- EDUCATION -->
-<section class="block wrap">
-  <div class="eyebrow reveal"><span class="n">/</span> Education &amp; Practice <span class="line"></span> <span class="tag">— RECEIPTS</span></div>
-  <div id="education"></div>
-</section>
-
-<!-- CLOSING CTA -->
 <section class="wrap">
   <div class="cta-band">
-    <h2>Now you know the <em>how</em>.<br>See the <em>what</em>.</h2>
+    <h2>Like the <em>how</em>?<br>Let's make some.</h2>
     <div class="links">
-      <a href="/work" data-cursor>Selected work</a>
+      <a href="/impact" data-cursor>The numbers</a>
+      <a href="/stack" data-cursor>The toolbox</a>
       <a href="/contact" data-cursor>Start a conversation</a>
-      <a href="#" data-open-term data-cursor>Open the terminal</a>
     </div>
   </div>
 </section>
-
 </main>
 
 <footer>

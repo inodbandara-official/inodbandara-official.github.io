@@ -5,24 +5,24 @@
    ============================================================================= */
 const CONFIG = {
   /* ---- identity ---- */
-  firstName: "INOD",
-  lastName:  "BANDARA",
+  firstName: "Inod",
+  lastName:  "Bandara",
   brandTag:  "PORTFOLIO",
   role:      "Systems & DevOps Engineer",
   thesis:    "Not the box in the diagram — the system that keeps standing when the load, the outage, and the attacker all arrive at once.",
   location:  "Colombo, SL",
   timezone:  "Asia/Colombo",   // IANA name for the live clock
   tzLabel:   "+0530",
-  status:    "OPEN TO WORK",
+  status:    "Will work for Pizza",
   email:     "officialinod@gmail.com",
   resumeUrl: "resume.pdf",
   socials: [
-    { label: "GitHub",   url: "https://github.com/inodbandara-official" },
+    { label: "GitHub",   url: "https://github.com/indobandara-official" },
     { label: "LinkedIn", url: "https://www.linkedin.com/in/inod-bandara-555722228/" },
     { label: "Location", url: "https://www.google.com/maps/place/Fort+America+Pentagon/@38.8707289,-77.0555936,19z" },
   ],
 
-  /* ---- selected work ----  (each entry also powers project.html?p=N) ---- */
+  /* ---- selected work ----  (each entry also powers /project?p=N) ---- */
   projects: [
     {
       title: "IFS Cloud 25R2 Rollout",
@@ -102,9 +102,15 @@ const CONFIG = {
       points:[ "ERP platform implementations across split-tier cloud topologies.",
                "Infrastructure provisioning, server administration, and client deployments.",
                "Endpoint hardening, plus documentation someone other than me can actually follow." ] },
+    { when:"2025 - 2026", role:"Artificial Intelligence Researcher", co:"University of Colombo School of Computing",
+      points:[ "Applied ML research for Rasaswadaya — experimentation, evaluation and turning models into something that actually runs.",
+               "Bridged research and infrastructure: reproducible pipelines and the plumbing around the Hybrid Recommendation model." ] },
     { when:"2024 — 2025", role:"Software Engineer", co:"Applova Inc",
       points:[ "Cloud VM fleet management and cost optimisation.",
                "Linux and Windows server builds, backups, and monitoring." ] },
+    { when:"2022 - 2023", role:"Associate Network Engineer", co:"Cyber Craft (PVT) Ltd",
+      points:[ "Configured, monitored, and troubleshot network infrastructure across client environments.",
+               "Hands-on with switching, routing, and the security layer where the systems interest began." ] },
     { when:"2026", role:"B.Sc. in Information Systems", co:"University of Colombo School of Computing",
       points:[ "Core grounding in information systems, databases, and networked infrastructure.",
                "Where the systems-and-security itch started — and then refused to leave." ] },
@@ -124,6 +130,37 @@ const CONFIG = {
     { group:"Security & Automation", items:[
       {n:"GPO / Registry", q:"hardening"}, {n:"PowerShell", q:"scripting"},
       {n:"Bash", q:"reluctantly fluent"}, {n:"ELK", q:"logging"} ] },
+  ],
+
+  /* ---- development stack (icon wall on /stack). Delete any line you don't want.
+     s = devicon path segment: "<folder>/<file>" (no .svg). Broken ones fall back. ---- */
+  /*deleted lines {n:"Ruby", s:"ruby/ruby-original"}, {n:"Rust", s:"rust/rust-original"}, {n:"Kotlin", s:"kotlin/kotlin-original"},*/
+  /*deleted lines {n:"Django", s:"django/django-plain"}, {n:"Flask", s:"flask/flask-original"}, */
+  /*{n:"MariaDB", s:"mariadb/mariadb-original"}, */
+  /*{n:"Ansible", s:"ansible/ansible-original"}, {n:"Jenkins", s:"jenkins/jenkins-original"},*/
+  techStack: [
+    { group:"Languages", items:[
+      {n:"Python", s:"python/python-original"}, {n:"JavaScript", s:"javascript/javascript-original"},
+      {n:"TypeScript", s:"typescript/typescript-original"}, {n:"Java", s:"java/java-original"},
+      {n:"C", s:"c/c-original"}, {n:"C++", s:"cplusplus/cplusplus-original"},
+      {n:"C#", s:"csharp/csharp-original"}, {n:"PHP", s:"php/php-original"},
+      {n:"Go", s:"go/go-original-wordmark"}, {n:"Bash", s:"bash/bash-original"} ] },
+    { group:"Frameworks & Libraries", items:[
+      {n:"Node.js", s:"nodejs/nodejs-original"}, {n:"Express", s:"express/express-original"},
+      {n:"React", s:"react/react-original"}, {n:"Next.js", s:"nextjs/nextjs-original"},
+      {n:"Vue", s:"vuejs/vuejs-original"}, {n:"Angular", s:"angularjs/angularjs-original"},
+      {n:"Spring", s:"spring/spring-original"}, {n:".NET", s:"dot-net/dot-net-original"},
+      {n:"Laravel", s:"laravel/laravel-original"}, {n:"Tailwind", s:"tailwindcss/tailwindcss-original"} ] },
+    { group:"Databases", items:[
+      {n:"MySQL", s:"mysql/mysql-original"}, {n:"PostgreSQL", s:"postgresql/postgresql-original"},
+      {n:"MongoDB", s:"mongodb/mongodb-original"}, {n:"Redis", s:"redis/redis-original"},
+      {n:"SQLite", s:"sqlite/sqlite-original"}, {n:"Oracle", s:"oracle/oracle-original"},
+      {n:"SQL Server", s:"microsoftsqlserver/microsoftsqlserver-plain"} ] },
+    { group:"DevOps & Tools", items:[
+      {n:"Docker", s:"docker/docker-original"}, {n:"Kubernetes", s:"kubernetes/kubernetes-plain"},
+      {n:"Git", s:"git/git-original"}, {n:"GitHub", s:"github/github-original"},
+      {n:"Linux", s:"linux/linux-original"}, {n:"Nginx", s:"nginx/nginx-original"},
+      {n:"AWS", s:"amazonwebservices/amazonwebservices-original-wordmark"} ] },
   ],
 
   /* ==========================================================================
@@ -185,10 +222,19 @@ const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
 const accent = t => (t||"").replace(/\*(.+?)\*/g,'<em>$1</em>');
 const set  = (id,val,html)=>{ const el=$("#"+id); if(el){ if(html) el.innerHTML=val; else el.textContent=val; } };
 
+/* cosmetic clean URLs: GitHub Pages serves /contact for contact.html, so strip
+   any stray ".html" (or "/index.html") from the address bar without reloading. */
+try{
+  let p=location.pathname;
+  if(/\/index\.html$/.test(p)) p=p.replace(/index\.html$/,'');
+  else if(/\.html$/.test(p))    p=p.replace(/\.html$/,'');
+  if(p!==location.pathname) history.replaceState(null,'',p+location.search+location.hash);
+}catch(e){}
+
 /* ---- identity (present on all pages) ---- */
 set("brandName", CONFIG.brandTag);
 set("tz", CONFIG.tzLabel);
-if(!document.body.hasAttribute("data-keep-title")) document.title = CONFIG.firstName+" "+CONFIG.lastName+" — "+CONFIG.role;
+if(!document.body.hasAttribute("data-keep-title")) document.title = CONFIG.firstName+" "+CONFIG.lastName;
 $$("[data-mailto]").forEach(a=>{ a.href="mailto:"+CONFIG.email; if(a.hasAttribute("data-mail-text")) a.textContent=CONFIG.email; });
 $$("[data-resume]").forEach(a=>a.href=CONFIG.resumeUrl);
 set("footC", "© "+new Date().getFullYear()+" "+CONFIG.firstName+" "+CONFIG.lastName+" · no cookies, no trackers, no analytics — I genuinely have no idea you're here.");
@@ -205,7 +251,7 @@ if($("#nameL1")){
 
 /* ---- marquee (any page that has one) ---- */
 if($("#marquee")){
-  const unit = '<span>Systems <em>·</em> Security <em>·</em> Infrastructure <em>·</em> DevOps <em>·</em></span>';
+  const unit = '<span>Systems <em>·</em> DevOps <em>·</em> Security <em>·</em> Infrastructure <em>·</em> Developer <em>·</em></span>';
   const run = " " + Array(6).fill(unit).join("");
   set("marquee", run+run, true);
 }
@@ -233,7 +279,7 @@ if($("#projects")){
         <div class="dcell"><h4>Approach</h4><p>${p.approach}</p></div>
         <div class="dcell"><h4>System</h4><p>${p.system}</p></div>
         <div class="dcell"><h4>Outcome</h4><p>${p.outcome}</p></div>
-        <div class="dcell" style="grid-column:1/-1; margin-top:6px"><a class="btn" href="project.html?p=${i}" data-cursor>Read the full case study →</a></div>
+        <div class="dcell" style="grid-column:1/-1; margin-top:6px"><a class="btn" href="/project?p=${i}" data-cursor>Read the full case study →</a></div>
       </div>
     </article>`).join("");
 }
@@ -257,6 +303,23 @@ if($("#stackGrid")) $("#stackGrid").innerHTML = CONFIG.stack.map(g=>`
       <h4>${g.group}</h4>
       <ul>${g.items.map(it=>`<li>${it.n}<span>${it.q}</span></li>`).join("")}</ul>
     </div>`).join("");
+
+/* ---- STACK page: icon wall (devicon via CDN, graceful fallback) ---- */
+if($("#techGrid")){
+  $("#techGrid").innerHTML = CONFIG.techStack.map(g=>`
+    <div class="tech-group reveal">
+      <h4>${g.group} <span class="tg-count">${g.items.length}</span></h4>
+      <div class="tech-grid">
+        ${g.items.map((it,i)=>`
+          <div class="tech" title="${it.n}">
+            <span class="tk-idx">${String(i+1).padStart(2,"0")}</span>
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${it.s}.svg" alt="${it.n}" loading="lazy"
+                 onerror="this.closest('.tech').classList.add('noicon')" />
+            <span class="tk-n">${it.n}</span>
+          </div>`).join("")}
+      </div>
+    </div>`).join("");
+}
 
 /* ---- ABOUT page ---- */
 if($("#aboutPage")){
@@ -338,8 +401,8 @@ if($("#projectPage")){
   set("pLesson", p.lesson || "Nothing exploded that I'm willing to admit to in writing.");
   // prev / next
   const prev=(idx-1+n)%n, next=(idx+1)%n;
-  set("pPrev", `<a href="project.html?p=${prev}" data-cursor>← ${CONFIG.projects[prev].title}</a>`, true);
-  set("pNext", `<a href="project.html?p=${next}" data-cursor>${CONFIG.projects[next].title} →</a>`, true);
+  set("pPrev", `<a href="/project?p=${prev}" data-cursor>← ${CONFIG.projects[prev].title}</a>`, true);
+  set("pNext", `<a href="/project?p=${next}" data-cursor>${CONFIG.projects[next].title} →</a>`, true);
 }
 
 /* ---- CONTACT page ---- */
@@ -464,26 +527,28 @@ const CMDS={
   <span class="acc">work</span>       list projects        ( <span class="mut">work 1</span> for detail )
   <span class="acc">open</span>       open a case study    ( <span class="mut">open 1</span> )
   <span class="acc">impact</span>     the numbers          ( <span class="mut">opens /impact</span> )
-  <span class="acc">skills</span>     the stack
+  <span class="acc">stack</span>      the toolbox          ( <span class="mut">opens /stack</span> )
+  <span class="acc">skills</span>     list the stack inline
   <span class="acc">xp</span>         experience           ( <span class="mut">opens /experience</span> )
   <span class="acc">contact</span>    how to reach me      ( <span class="mut">opens /contact</span> )
   <span class="acc">theme</span>      toggle light / dark
   <span class="acc">clear</span>      wipe the screen
   <span class="mut">try:</span> <span class="acc">sudo hire</span>  <span class="mut">·  there are a few undocumented ones. it's a security portfolio; go poke.</span>`; },
   whoami(){ return `${CONFIG.firstName} ${CONFIG.lastName} — ${CONFIG.role}\n<span class="mut">${CONFIG.location} · ${CONFIG.status}</span>`; },
-  about(){ setTimeout(()=>location.href="about.html",600); return `${CONFIG.thesis}\n<span class="mut">opening /about …</span>`; },
+  about(){ setTimeout(()=>location.href="/about",600); return `${CONFIG.thesis}\n<span class="mut">opening /about …</span>`; },
   work(arg){
     if(arg){ const p=CONFIG.projects[(+arg)-1]; if(!p) return `<span class="mut">no project ${arg}. try: work 1–${CONFIG.projects.length}</span>`;
       return `<span class="acc">${p.title}</span> (${p.year}) — ${p.role}\n${p.summary}\n<span class="mut">outcome:</span> ${p.outcome}`; }
     return CONFIG.projects.map((p,i)=>`  <span class="acc">0${i+1}</span>  ${p.title} <span class="mut">— ${p.year}</span>`).join("\n")+`\n<span class="mut">→ type "work 1" for detail</span>`;
   },
   skills(){ return CONFIG.stack.map(g=>`<span class="acc">${g.group}</span>: `+g.items.map(i=>i.n).join(", ")).join("\n"); },
-  xp(){ setTimeout(()=>location.href="experience.html",600); return CONFIG.experience.map(e=>`<span class="acc">${e.when}</span> — ${e.role}, ${e.co}`).join("\n")+`\n<span class="mut">opening /experience …</span>`; },
-  impact(){ setTimeout(()=>location.href="impact.html",600); return CONFIG.impact.map(s=>`  <span class="acc">${s.num.replace(/\*/g,"")}</span>  ${s.lbl}`).join("\n")+`\n<span class="mut">opening /impact …</span>`; },
-  contact(){ setTimeout(()=>location.href="contact.html",600); return `email: <span class="acc">${CONFIG.email}</span>\n<span class="mut">opening /contact …</span>`; },
+  xp(){ setTimeout(()=>location.href="/experience",600); return CONFIG.experience.map(e=>`<span class="acc">${e.when}</span> — ${e.role}, ${e.co}`).join("\n")+`\n<span class="mut">opening /experience …</span>`; },
+  impact(){ setTimeout(()=>location.href="/impact",600); return CONFIG.impact.map(s=>`  <span class="acc">${s.num.replace(/\*/g,"")}</span>  ${s.lbl}`).join("\n")+`\n<span class="mut">opening /impact …</span>`; },
+  contact(){ setTimeout(()=>location.href="/contact",600); return `email: <span class="acc">${CONFIG.email}</span>\n<span class="mut">opening /contact …</span>`; },
   theme(){ setTheme(root.getAttribute("data-theme")==="dark"?"light":"dark"); return `theme → <span class="acc">${root.getAttribute("data-theme")}</span>`; },
   clear(){ if(termBody) termBody.innerHTML=""; return ""; },
-  open(arg){ const i=(+arg)-1; if(isNaN(i)||!CONFIG.projects[i]) return `<span class="mut">usage: open 1–${CONFIG.projects.length}</span>`; setTimeout(()=>location.href="project.html?p="+i,500); return `opening case study: <span class="acc">${CONFIG.projects[i].title}</span> …`; },
+  stack(){ setTimeout(()=>location.href="/stack",600); return `<span class="mut">opening /stack — the toolbox …</span>`; },
+  open(arg){ const i=(+arg)-1; if(isNaN(i)||!CONFIG.projects[i]) return `<span class="mut">usage: open 1–${CONFIG.projects.length}</span>`; setTimeout(()=>location.href="/project?p="+i,500); return `opening case study: <span class="acc">${CONFIG.projects[i].title}</span> …`; },
   sudo(arg){ if((arg||"").includes("hire")){ setTimeout(()=>location.href="mailto:"+CONFIG.email,700); return `<span class="acc">Permission granted.</span> Opening mail client…`; } return `<span class="mut">nice try. this incident has been logged, timestamped, and quietly forgiven. 🙂</span>`; },
   /* ---- undocumented (the fun part) ---- */
   coffee(){ return `brewing… ☕  the only blocking operation I fully endorse.`; },
