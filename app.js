@@ -22,10 +22,11 @@ const CONFIG = {
     { label: "Location", url: "https://www.google.com/maps/place/Fort+America+Pentagon/@38.8707289,-77.0555936,19z" },
   ],
 
-  /* ---- selected work ----  (each entry also powers /project?p=N) ---- */
+  /* ---- selected work ----  (each entry powers /work/<slug>, ?p=N still works) ---- */
   projects: [
     {
       title: "IFS Cloud 25R2 Rollout",
+      slug: "ifs-cloud-25r2-rollout",
       tagline: "Getting a split-tier ERP from \"undocumented failure modes\" to a green deploy — without the 2am reruns becoming a lifestyle.",
       year: "2026", role: "Lead — Infrastructure & Deployment", client: "Internal · ERP consultancy", duration: "~6 weeks, several of them character-building",
       summary: "Stood up a production ERP platform on a split two-VM topology — Oracle 19c on Windows, a microk8s middle tier on Ubuntu — and drove it through every install blocker to a green deploy.",
@@ -40,6 +41,7 @@ const CONFIG = {
     },
     {
       title: "Remote Laptop Hardening",
+      slug: "remote-laptop-hardening",
       tagline: "A real security baseline for a fleet with no domain, no MDM, and no appetite for \"we'll sort it later.\"",
       year: "2026", role: "Owner — Endpoint Security", client: "Internal · remote staff", duration: "~3 weeks",
       summary: "Designed a Group-Policy + registry hardening baseline for remote staff on a fleet with no Intune and no domain — then wrote the honest business case for the tooling that would automate it.",
@@ -54,6 +56,7 @@ const CONFIG = {
     },
     {
       title: "Cloud Fleet Consolidation",
+      slug: "cloud-fleet-consolidation",
       tagline: "Turning a surprise-every-month hosting bill into a flat, boring, predictable one. Boring is the entire point.",
       year: "2025", role: "Infrastructure Engineer", client: "Internal", duration: "ongoing",
       summary: "Evaluated hosting for a Windows-heavy, high-bandwidth VM fleet and moved the analysis from gut feel to a flat-rate, unmetered single-provider model.",
@@ -222,6 +225,11 @@ const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
 const accent = t => (t||"").replace(/\*(.+?)\*/g,'<em>$1</em>');
 const set  = (id,val,html)=>{ const el=$("#"+id); if(el){ if(html) el.innerHTML=val; else el.textContent=val; } };
 
+/* clean case-study URLs: /work/<slug>. Each project can set its own `slug`;
+   anything without one falls back to a slug derived from its title. */
+const slugify  = s => (s||"").toString().toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+const projSlug = p => (p && p.slug) ? p.slug : slugify(p && p.title);
+
 /* cosmetic clean URLs: GitHub Pages serves /contact for contact.html, so strip
    any stray ".html" (or "/index.html") from the address bar without reloading. */
 try{
@@ -279,7 +287,7 @@ if($("#projects")){
         <div class="dcell"><h4>Approach</h4><p>${p.approach}</p></div>
         <div class="dcell"><h4>System</h4><p>${p.system}</p></div>
         <div class="dcell"><h4>Outcome</h4><p>${p.outcome}</p></div>
-        <div class="dcell" style="grid-column:1/-1; margin-top:6px"><a class="btn" href="/project?p=${i}" data-cursor>Read the full case study →</a></div>
+        <div class="dcell" style="grid-column:1/-1; margin-top:6px"><a class="btn" href="/work/${projSlug(p)}" data-cursor>Read the full case study →</a></div>
       </div>
     </article>`).join("");
 }
@@ -362,8 +370,17 @@ if($("#aboutPage")){
 /* ---- PROJECT (case study) page — one template renders any project via ?p=N ---- */
 if($("#projectPage")){
   const params = new URLSearchParams(location.search);
-  let idx = parseInt(params.get("p"),10);
-  if(isNaN(idx) || idx<0 || idx>=CONFIG.projects.length) idx=0;
+  let idx = -1;
+  /* 1) preferred: a slug in the path, e.g. /work/ifs-cloud-25r2-rollout */
+  const m = location.pathname.match(/\/work\/([^\/?#]+)/);
+  if(m){
+    const slug = decodeURIComponent(m[1]).replace(/\.html$/,"").replace(/\/$/,"");
+    idx = CONFIG.projects.findIndex(pr => projSlug(pr) === slug);
+  }
+  /* 2) fallback: ?p=N (old links + any host without rewrites still work) */
+  if(idx < 0){ const q = parseInt(params.get("p"),10); if(!isNaN(q)) idx = q; }
+  /* 3) default to the first project */
+  if(idx < 0 || idx >= CONFIG.projects.length) idx = 0;
   const p = CONFIG.projects[idx];
   const n = CONFIG.projects.length;
   const pad = i => "0"+(i+1);
@@ -401,8 +418,8 @@ if($("#projectPage")){
   set("pLesson", p.lesson || "Nothing exploded that I'm willing to admit to in writing.");
   // prev / next
   const prev=(idx-1+n)%n, next=(idx+1)%n;
-  set("pPrev", `<a href="/project?p=${prev}" data-cursor>← ${CONFIG.projects[prev].title}</a>`, true);
-  set("pNext", `<a href="/project?p=${next}" data-cursor>${CONFIG.projects[next].title} →</a>`, true);
+  set("pPrev", `<a href="/work/${projSlug(CONFIG.projects[prev])}" data-cursor>← ${CONFIG.projects[prev].title}</a>`, true);
+  set("pNext", `<a href="/work/${projSlug(CONFIG.projects[next])}" data-cursor>${CONFIG.projects[next].title} →</a>`, true);
 }
 
 /* ---- CONTACT page ---- */
@@ -548,14 +565,14 @@ const CMDS={
   theme(){ setTheme(root.getAttribute("data-theme")==="dark"?"light":"dark"); return `theme → <span class="acc">${root.getAttribute("data-theme")}</span>`; },
   clear(){ if(termBody) termBody.innerHTML=""; return ""; },
   stack(){ setTimeout(()=>location.href="/stack",600); return `<span class="mut">opening /stack — the toolbox …</span>`; },
-  open(arg){ const i=(+arg)-1; if(isNaN(i)||!CONFIG.projects[i]) return `<span class="mut">usage: open 1–${CONFIG.projects.length}</span>`; setTimeout(()=>location.href="/project?p="+i,500); return `opening case study: <span class="acc">${CONFIG.projects[i].title}</span> …`; },
+  open(arg){ const i=(+arg)-1; if(isNaN(i)||!CONFIG.projects[i]) return `<span class="mut">usage: open 1–${CONFIG.projects.length}</span>`; setTimeout(()=>location.href="/work/"+projSlug(CONFIG.projects[i]),500); return `opening case study: <span class="acc">${CONFIG.projects[i].title}</span> …`; },
   sudo(arg){ if((arg||"").includes("hire")){ setTimeout(()=>location.href="mailto:"+CONFIG.email,700); return `<span class="acc">Permission granted.</span> Opening mail client…`; } return `<span class="mut">nice try. this incident has been logged, timestamped, and quietly forgiven. 🙂</span>`; },
   /* ---- undocumented (the fun part) ---- */
   coffee(){ return `brewing… ☕  the only blocking operation I fully endorse.`; },
   ping(){ return `PONG. latency: <span class="acc">&lt;50ms</span> technically, emotionally instantaneous.`; },
   uptime(){ return `up 3 years, 0 unplanned reboots. <span class="mut">the office coffee machine cannot make the same claim.</span>`; },
   dns(){ return `<span class="acc">it was DNS.</span> <span class="mut">it is always DNS. one day it will not be DNS, and that day it will still, somehow, be DNS.</span>`; },
-  ls(arg){ if((arg||"").includes("-a")||(arg||"").includes("-la")) return `.  ..  work/  <span class="mut">.secrets/</span>  <span class="mut">.env  (you wish)</span>`; return CONFIG.projects.map((p,i)=>`0${i+1}_${p.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}/`).join("   "); },
+  ls(arg){ if((arg||"").includes("-a")||(arg||"").includes("-la")) return `.  ..  work/  <span class="mut">.secrets/</span>  <span class="mut">.env  (you wish)</span>`; return CONFIG.projects.map((p,i)=>`0${i+1}_${projSlug(p)}/`).join("   "); },
   cat(arg){ if((arg||"").includes("secret")||(arg||"").includes(".env")) return `<span class="mut">permission denied. hardening is a lifestyle, not a project.</span>`; return `<span class="mut">cat: ${arg||"?"}: no such file. try </span><span class="acc">help</span>`; },
   rm(arg){ if((arg||"").replace(/\s+/g,"").includes("-rf/")) return `<span class="acc">whoa.</span> <span class="mut">I keep backups precisely so this stopped being funny to me. request denied, with love.</span>`; return `<span class="mut">rm: refusing. see: backups, runbooks, therapy.</span>`; },
   man(){ return `<span class="mut">no manual pages here. that's the entire reason I write runbooks.</span>`; },

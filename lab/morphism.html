@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Morphism, three ways — Lab</title>
+<meta name="description" content="Skeuomorphism, neumorphism, glassmorphism: the same card morphing through all three. An interactive study in how a flat screen fakes depth." />
+<!--
+  Three visual languages, one card. The page chrome stays amber-and-dark on
+  purpose so it never argues with the specimens. → back to /lab
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" href="/styles.css" />
+<style>
+  /* =========================================================================
+     MORPHISM EXPERIMENT — page-scoped.
+     Rule of thumb: the DEMOS carry their own fixed palettes (that's the whole
+     subject); everything AROUND them uses the site tokens so it adapts to
+     light/dark like the rest of the portfolio.
+     ========================================================================= */
+
+  /* ---- tabs ---- */
+  .mtabs{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .mtab{ flex:1; min-width:150px; padding:12px 14px; border-radius:100px; cursor:pointer;
+    font-family:var(--ff-mono); font-size:12.5px; letter-spacing:.04em;
+    background:transparent; color:var(--muted); border:1px solid var(--line-2);
+    transition:all .25s var(--ease); }
+  .mtab:hover{ color:var(--text); border-color:var(--accent); }
+  .mtab.on{ color:var(--accent); border-color:var(--accent); background:var(--accent-dim); }
+  .mtab .mi{ color:var(--faint); margin-right:9px; }
+  .mtab.on .mi{ color:var(--accent); }
+
+  /* ---- stage (the morphing environment) ---- */
+  .stage{ position:relative; overflow:hidden; border:1px solid var(--line); border-radius:4px;
+    min-height:400px; display:flex; align-items:center; justify-content:center; padding:44px 24px;
+    transition:background .6s ease; }
+  .stage .badge{ position:absolute; top:16px; left:18px; z-index:3; font-family:var(--ff-mono);
+    font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; padding:6px 11px; border-radius:2px;
+    transition:all .6s ease; }
+  .blob{ position:absolute; border-radius:50%; filter:blur(44px); opacity:0; transition:opacity .6s ease; pointer-events:none; }
+  .b1{ width:200px; height:200px; background:#ff2d75; top:-30px; left:-10px; }
+  .b2{ width:220px; height:220px; background:#00e0ff; bottom:-44px; right:-24px; }
+  .b3{ width:160px; height:160px; background:#a855f7; top:38%; left:44%; }
+
+  .player{ position:relative; z-index:2; width:294px; padding:22px; border-radius:22px; transition:all .6s ease; }
+  .player .art{ width:100%; aspect-ratio:1; border-radius:15px; margin-bottom:16px; display:flex;
+    align-items:center; justify-content:center; font-size:44px; transition:all .6s ease; }
+  .player .tt{ font-family:var(--ff-display); font-size:17px; font-weight:600; margin-bottom:2px; transition:color .6s ease; }
+  .player .ar{ font-size:13px; margin-bottom:16px; font-family:var(--ff-mono); transition:color .6s ease; }
+  .player .prog{ height:6px; border-radius:99px; margin-bottom:18px; transition:all .6s ease; }
+  .player .prog span{ display:block; height:100%; width:44%; border-radius:99px; transition:all .6s ease; }
+  .player .ctls{ display:flex; align-items:center; justify-content:center; gap:22px; }
+  .player .c{ border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font-size:16px; transition:all .6s ease; width:42px; height:42px; border-radius:50%; }
+  .player .c.main{ width:56px; height:56px; font-size:19px; }
+
+  /* skeuomorphism habitat */
+  .stage[data-s="skeuo"]{ background:#2a2320; background-image:radial-gradient(circle at 30% 18%,#3a322c 0,#1f1b18 72%); }
+  .stage[data-s="skeuo"] .badge{ background:#4a4038; color:#e8dccb; box-shadow:inset 0 1px 0 rgba(255,255,255,.15); }
+  .stage[data-s="skeuo"] .player{ background:linear-gradient(160deg,#4a4038,#2e2721); box-shadow:0 20px 46px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.13); border:1px solid #1a1613; }
+  .stage[data-s="skeuo"] .art{ background:linear-gradient(150deg,#6d5b4a,#3b3129); box-shadow:inset 0 2px 7px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.08); color:#e8dccb; }
+  .stage[data-s="skeuo"] .tt{ color:#f4ece0; text-shadow:0 1px 1px rgba(0,0,0,.5); }
+  .stage[data-s="skeuo"] .ar{ color:#b9a992; }
+  .stage[data-s="skeuo"] .prog{ background:#211c18; box-shadow:inset 0 2px 4px rgba(0,0,0,.65); }
+  .stage[data-s="skeuo"] .prog span{ background:linear-gradient(90deg,#e0a94f,#c9862f); box-shadow:0 0 7px rgba(224,169,79,.6); }
+  .stage[data-s="skeuo"] .c{ background:linear-gradient(160deg,#5a4e42,#332b24); box-shadow:0 4px 9px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.18); color:#f0e6d8; }
+  .stage[data-s="skeuo"] .c.main{ background:linear-gradient(160deg,#e6b45c,#b9791f); color:#3a2a0e; }
+
+  /* neumorphism habitat */
+  .stage[data-s="neu"]{ background:#e0e5ec; }
+  .stage[data-s="neu"] .badge{ background:#d5dae3; color:#6b7688; box-shadow:2px 2px 5px #c2c7ce,-2px -2px 5px #f2f6ff; }
+  .stage[data-s="neu"] .player{ background:#e0e5ec; box-shadow:10px 10px 20px #b8bec7,-10px -10px 20px #ffffff; border:none; }
+  .stage[data-s="neu"] .art{ background:#e0e5ec; box-shadow:inset 6px 6px 12px #b8bec7,inset -6px -6px 12px #ffffff; color:#8a94a6; }
+  .stage[data-s="neu"] .tt{ color:#4a5568; text-shadow:1px 1px 1px #fff; }
+  .stage[data-s="neu"] .ar{ color:#8a94a6; }
+  .stage[data-s="neu"] .prog{ background:#e0e5ec; box-shadow:inset 3px 3px 6px #b8bec7,inset -3px -3px 6px #ffffff; }
+  .stage[data-s="neu"] .prog span{ background:linear-gradient(90deg,#7c88a0,#5c6880); }
+  .stage[data-s="neu"] .c{ background:#e0e5ec; box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff; color:#6b7688; }
+  .stage[data-s="neu"] .c.main{ color:#4a5568; }
+
+  /* glassmorphism habitat */
+  .stage[data-s="glass"]{ background:#1a1030; background-image:radial-gradient(circle at 20% 30%,#3b1e6e 0,#100718 72%); }
+  .stage[data-s="glass"] .blob{ opacity:.85; }
+  .stage[data-s="glass"] .badge{ background:rgba(255,255,255,.16); color:#fff; border:1px solid rgba(255,255,255,.25); }
+  .stage[data-s="glass"] .player{ background:rgba(255,255,255,.12); backdrop-filter:blur(16px) saturate(150%); -webkit-backdrop-filter:blur(16px) saturate(150%); border:1px solid rgba(255,255,255,.28); box-shadow:0 14px 44px rgba(0,0,0,.4); }
+  .stage[data-s="glass"] .art{ background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.25); color:#fff; }
+  .stage[data-s="glass"] .tt{ color:#fff; }
+  .stage[data-s="glass"] .ar{ color:rgba(255,255,255,.75); }
+  .stage[data-s="glass"] .prog{ background:rgba(255,255,255,.2); }
+  .stage[data-s="glass"] .prog span{ background:rgba(255,255,255,.92); }
+  .stage[data-s="glass"] .c{ background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); color:#fff; }
+  .stage[data-s="glass"] .c.main{ background:rgba(255,255,255,.92); color:#3b1e6e; }
+
+  .mcap{ margin:16px 2px 0; font-size:14.5px; color:var(--muted); line-height:1.6; min-height:46px; }
+  .mcap b{ color:var(--accent); font-weight:500; }
+
+  /* ---- specimens ---- */
+  .spec{ display:grid; grid-template-columns:300px 1fr; gap:34px; align-items:center;
+    padding:34px 0; border-top:1px solid var(--line); }
+  .spec:last-of-type{ border-bottom:1px solid var(--line); }
+  .demo{ border-radius:4px; padding:36px 26px; display:flex; justify-content:center; overflow:hidden; }
+  .mini{ width:214px; border-radius:16px; padding:20px; }
+  .mini h4{ margin:0 0 16px; font-size:15px; font-family:var(--ff-display); font-weight:600; }
+  .mini .row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .mini .row span{ font-size:13px; font-family:var(--ff-mono); }
+  .tog{ width:46px; height:26px; border-radius:99px; position:relative; flex:none; }
+  .tog i{ position:absolute; top:3px; left:23px; width:20px; height:20px; border-radius:50%; }
+  .mini .mbtn{ width:100%; padding:11px 0; border-radius:11px; border:none; font-family:var(--ff-display);
+    font-weight:500; font-size:14px; cursor:pointer; }
+
+  .demo.skeuo{ background:radial-gradient(circle at 30% 20%,#3a322c 0,#211c18 75%); }
+  .demo.skeuo .mini{ background:linear-gradient(160deg,#4a4038,#2e2721); box-shadow:0 14px 32px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.12); border:1px solid #1a1613; }
+  .demo.skeuo h4{ color:#f4ece0; text-shadow:0 1px 1px rgba(0,0,0,.5); }
+  .demo.skeuo .row span{ color:#c9b9a2; }
+  .demo.skeuo .tog{ background:linear-gradient(90deg,#c9862f,#e0a94f); box-shadow:inset 0 2px 4px rgba(0,0,0,.45),0 0 8px rgba(224,169,79,.4); }
+  .demo.skeuo .tog i{ background:linear-gradient(160deg,#fff6e6,#e0d3bd); box-shadow:0 2px 4px rgba(0,0,0,.5); }
+  .demo.skeuo .mbtn{ background:linear-gradient(160deg,#e6b45c,#b9791f); color:#3a2a0e; box-shadow:0 4px 9px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.35); }
+
+  .demo.neu{ background:#e0e5ec; }
+  .demo.neu .mini{ background:#e0e5ec; box-shadow:9px 9px 18px #b8bec7,-9px -9px 18px #ffffff; }
+  .demo.neu h4{ color:#4a5568; text-shadow:1px 1px 1px #fff; }
+  .demo.neu .row span{ color:#7c88a0; }
+  .demo.neu .tog{ background:#e0e5ec; box-shadow:inset 3px 3px 6px #b8bec7,inset -3px -3px 6px #fff; }
+  .demo.neu .tog i{ background:#e0e5ec; box-shadow:2px 2px 4px #b8bec7,-2px -2px 4px #fff; }
+  .demo.neu .mbtn{ background:#e0e5ec; color:#5c6880; box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff; }
+
+  .demo.glass{ background:radial-gradient(circle at 25% 25%,#3b1e6e 0,#140a24 75%); position:relative; }
+  .demo.glass::before,.demo.glass::after{ content:""; position:absolute; border-radius:50%; filter:blur(40px); }
+  .demo.glass::before{ width:140px; height:140px; background:#ff2d75; top:-20px; left:10px; opacity:.7; }
+  .demo.glass::after{ width:150px; height:150px; background:#00e0ff; bottom:-30px; right:0; opacity:.6; }
+  .demo.glass .mini{ position:relative; background:rgba(255,255,255,.12); backdrop-filter:blur(16px) saturate(150%); -webkit-backdrop-filter:blur(16px) saturate(150%); border:1px solid rgba(255,255,255,.28); box-shadow:0 12px 36px rgba(0,0,0,.4); }
+  .demo.glass h4{ color:#fff; }
+  .demo.glass .row span{ color:rgba(255,255,255,.8); }
+  .demo.glass .tog{ background:rgba(255,255,255,.9); }
+  .demo.glass .tog i{ background:#3b1e6e; }
+  .demo.glass .mbtn{ background:rgba(255,255,255,.9); color:#3b1e6e; }
+
+  .info h3{ font-family:var(--ff-display); font-weight:600; font-size:1.5rem; letter-spacing:-.01em; margin:0 0 4px; }
+  .info .era{ font-family:var(--ff-mono); font-size:12px; color:var(--accent); margin:0 0 14px; }
+  .info p{ margin:0 0 16px; color:var(--muted); font-size:15px; line-height:1.6; max-width:64ch; }
+  .info p b{ color:var(--text); font-weight:500; }
+  .code{ font-family:var(--ff-mono); font-size:12.5px; background:var(--bg-1); border:1px solid var(--line-2);
+    border-left:2px solid var(--accent); border-radius:2px; padding:14px 16px; color:var(--text);
+    overflow-x:auto; line-height:1.75; }
+  .code .k{ color:var(--accent); } .code .c{ color:var(--faint); }
+  .warn{ display:inline-flex; align-items:center; gap:8px; margin-top:14px; font-family:var(--ff-mono);
+    font-size:12.5px; color:var(--muted); }
+  .warn b{ color:var(--accent); font-weight:500; }
+  .warn::before{ content:"!"; display:inline-flex; align-items:center; justify-content:center; width:17px; height:17px;
+    border-radius:3px; background:var(--accent-dim); color:var(--accent); font-size:11px; flex:none; }
+
+  @media (max-width:720px){
+    .spec{ grid-template-columns:1fr; gap:24px; }
+    .demo{ padding:30px 20px; }
+  }
+
+  /* ---- comparison table ---- */
+  .cmp{ width:100%; border-collapse:collapse; font-size:14px; margin-top:10px; }
+  .cmp th,.cmp td{ text-align:left; padding:14px 16px; border-bottom:1px solid var(--line); vertical-align:top; }
+  .cmp thead th{ font-family:var(--ff-display); font-weight:600; font-size:14px; color:var(--text); }
+  .cmp thead th:first-child{ font-family:var(--ff-mono); font-weight:400; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--faint); }
+  .cmp tbody th{ font-family:var(--ff-mono); font-weight:400; font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--faint); white-space:nowrap; }
+  .cmp td{ color:var(--muted); }
+  .cmp tbody tr:hover th,.cmp tbody tr:hover td{ background:var(--bg-1); }
+  .cmp td b{ color:var(--text); font-weight:500; }
+  @media (max-width:640px){ .cmp{ display:block; overflow-x:auto; white-space:nowrap; } }
+</style>
+</head>
+<body id="morphismPage" data-keep-title>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav class="nav" id="nav">
+  <a href="/" class="brand" data-cursor>SYS<b>://</b><span id="brandName">PORTFOLIO</span></a>
+  <div class="nav-links">
+    <a href="/work"><span class="idx">01</span> Work</a>
+    <a href="/impact"><span class="idx">02</span> Impact</a>
+    <a href="/about"><span class="idx">03</span> About</a>
+    <a href="/experience"><span class="idx">04</span> Experience</a>
+    <a href="/stack"><span class="idx">05</span> Stack</a>
+    <a href="/contact"><span class="idx">06</span> Contact</a>
+    <a href="/lab" aria-current="page"><span class="idx">07</span> Lab</a>
+  </div>
+  <div class="nav-tools">
+    <div class="clock"><span id="clock">--:--:--</span> <span class="tz" id="tz">UTC</span></div>
+    <button class="toggle" id="themeToggle" data-cursor>◐ THEME</button>
+    <button class="menu-btn" id="menuBtn" data-cursor>MENU</button>
+  </div>
+</nav>
+
+<div class="overlay" id="overlay">
+  <button class="toggle close" id="overlayClose" data-cursor>CLOSE ✕</button>
+  <a href="/work"><span>01</span>Work</a>
+  <a href="/impact"><span>02</span>Impact</a>
+  <a href="/about"><span>03</span>About</a>
+  <a href="/experience"><span>04</span>Experience</a>
+  <a href="/stack"><span>05</span>Stack</a>
+  <a href="/contact"><span>06</span>Contact</a>
+  <a href="/lab"><span>07</span>Lab</a>
+</div>
+
+<div class="hud hud-bl"><span class="k">CRSR</span> <span class="v" id="crsr">0.000 · 0.000</span></div>
+<div class="hud hud-br"><span class="k">SCRL</span> <span class="v" id="scrl">0.00</span> <span class="k">%</span></div>
+
+<main>
+<header class="page-hero wrap">
+  <a class="case-back" href="/lab" data-cursor>← lab / experiments</a>
+  <div class="eyebrow reveal"><span class="n">07</span> / Lab <span class="line"></span> <span class="tag">EXPERIMENT · LIVE</span></div>
+  <h1 style="font-family:var(--ff-display);font-weight:600;font-size:clamp(2.4rem,8vw,6rem);letter-spacing:-.03em;line-height:.92">Morphism, three ways<span style="color:var(--accent)">.</span></h1>
+  <p class="ah__standfirst reveal" style="margin-top:22px">Skeuomorphism, neumorphism and glassmorphism are three answers to one question: <em style="color:var(--accent);font-style:normal">how do you make pixels feel physical?</em> Same card, same content, three completely different visual languages. Hit a tab and watch it morph — the environment changes too, because each style needs its own.</p>
+</header>
+
+<section class="block wrap" style="padding-top:clamp(30px,5vw,56px)">
+  <div class="mtabs" role="tablist" aria-label="Morphism style">
+    <button class="mtab on" data-s="skeuo" role="tab"><span class="mi">01</span>Skeuomorphism</button>
+    <button class="mtab" data-s="neu" role="tab"><span class="mi">02</span>Neumorphism</button>
+    <button class="mtab" data-s="glass" role="tab"><span class="mi">03</span>Glassmorphism</button>
+  </div>
+
+  <div class="stage reveal" data-s="skeuo" id="stage">
+    <span class="badge" id="badge">Skeuomorphism</span>
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+    <div class="player">
+      <div class="art"><span aria-hidden="true">♪</span></div>
+      <div class="tt">Nightdrive</div>
+      <div class="ar">Parallel Suns</div>
+      <div class="prog"><span></span></div>
+      <div class="ctls">
+        <button class="c" aria-label="Previous">⏮</button>
+        <button class="c main" aria-label="Play">▶</button>
+        <button class="c" aria-label="Next">⏭</button>
+      </div>
+    </div>
+  </div>
+  <p class="mcap" id="mcap"></p>
+</section>
+
+<section class="block wrap" style="padding-top:0">
+  <div class="eyebrow reveal"><span class="n">//</span> In their natural habitat <span class="line"></span> <span class="tag">— EACH NEEDS ITS OWN ROOM</span></div>
+  <p class="ah__standfirst reveal" style="max-width:64ch;margin-bottom:6px">The morpher shares one canvas, but each language actually leans on a different backdrop to work. Here's the same little settings card, three times, each shown in the environment its effects were built for.</p>
+
+  <div class="spec reveal">
+    <div class="demo skeuo">
+      <div class="mini">
+        <h4>Playback</h4>
+        <div class="row"><span>Shuffle</span><div class="tog"><i></i></div></div>
+        <button class="mbtn">Save changes</button>
+      </div>
+    </div>
+    <div class="info">
+      <h3>Skeuomorphism</h3>
+      <p class="era">2007–2013 · the iOS 6 era</p>
+      <p>Imitates real materials — leather, brushed metal, glossy plastic. <b>Layered gradients, inset textures and heavy drop shadows</b> tell your eye an element is a physical, pressable thing.</p>
+      <div class="code"><span class="c">/* depth from real light + material */</span><br><span class="k">background</span>: linear-gradient(160deg,#4a4038,#2e2721);<br><span class="k">box-shadow</span>: 0 20px 46px rgba(0,0,0,.6),<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;inset 0 1px 0 rgba(255,255,255,.13);</div>
+      <span class="warn">Reads dated &amp; heavy if you <b>over-gloss</b> it</span>
+    </div>
+  </div>
+
+  <div class="spec reveal">
+    <div class="demo neu">
+      <div class="mini">
+        <h4>Playback</h4>
+        <div class="row"><span>Shuffle</span><div class="tog"><i></i></div></div>
+        <button class="mbtn">Save changes</button>
+      </div>
+    </div>
+    <div class="info">
+      <h3>Neumorphism</h3>
+      <p class="era">2020 · soft UI</p>
+      <p>One background colour, no borders. The element is the <b>same colour as its container</b> and gets two shadows — light top-left, dark bottom-right — so it looks extruded from the surface, or pressed into it.</p>
+      <div class="code"><span class="c">/* element == background colour */</span><br><span class="k">background</span>: #e0e5ec;<br><span class="k">box-shadow</span>: 9px 9px 18px #b8bec7,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-9px -9px 18px #ffffff;</div>
+      <span class="warn">Low contrast — a real <b>accessibility</b> risk</span>
+    </div>
+  </div>
+
+  <div class="spec reveal">
+    <div class="demo glass">
+      <div class="mini">
+        <h4>Playback</h4>
+        <div class="row"><span>Shuffle</span><div class="tog"><i></i></div></div>
+        <button class="mbtn">Save changes</button>
+      </div>
+    </div>
+    <div class="info">
+      <h3>Glassmorphism</h3>
+      <p class="era">2013 iOS 7 · revived 2020, macOS Big Sur</p>
+      <p>Frosted, translucent panels floating above a vivid background. A <b>backdrop blur</b>, a thin light border and a soft shadow sell the illusion of layered, semi-transparent glass.</p>
+      <div class="code"><span class="c">/* blur whatever sits behind */</span><br><span class="k">background</span>: rgba(255,255,255,.12);<br><span class="k">backdrop-filter</span>: blur(16px) saturate(150%);<br><span class="k">border</span>: 1px solid rgba(255,255,255,.28);</div>
+      <span class="warn">Needs a <b>colourful backdrop</b> or the blur is invisible</span>
+    </div>
+  </div>
+</section>
+
+<section class="block wrap" style="padding-top:0">
+  <div class="eyebrow reveal"><span class="n">//</span> Side by side <span class="line"></span> <span class="tag">— QUICK REFERENCE</span></div>
+  <table class="cmp reveal">
+    <thead>
+      <tr><th>trait</th><th>Skeuomorphism</th><th>Neumorphism</th><th>Glassmorphism</th></tr>
+    </thead>
+    <tbody>
+      <tr><th>core idea</th><td><b>Mimic real objects</b></td><td><b>Extrude from the background</b></td><td><b>Frosted glass over colour</b></td></tr>
+      <tr><th>background</th><td>Rich textures &amp; gradients</td><td>One flat muted colour</td><td>Vivid &amp; colourful</td></tr>
+      <tr><th>shadows</th><td>Deep, realistic</td><td>Dual (light + dark)</td><td>One soft ambient</td></tr>
+      <tr><th>borders</th><td>Bevels &amp; highlights</td><td>None — shadows do it</td><td>Thin, light, translucent</td></tr>
+      <tr><th>key css</th><td>gradient + box-shadow</td><td>dual box-shadow / inset</td><td>backdrop-filter: blur()</td></tr>
+      <tr><th>contrast</th><td>High</td><td>Low <em style="color:var(--accent);font-style:normal">(its weak spot)</em></td><td>Depends on backdrop</td></tr>
+      <tr><th>watch for</th><td>Dated if overdone</td><td>Weak affordance / a11y</td><td>Readability &amp; GPU cost</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="wrap">
+  <div class="cta-band">
+    <h2>The whole thing is <em>just CSS</em>.<br>No canvas, no images.</h2>
+    <div class="links">
+      <a href="/lab" data-cursor>← more experiments</a>
+      <a href="/stack" data-cursor>The toolbox</a>
+      <a href="/contact" data-cursor>Start a conversation</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <span class="c" id="footC"></span>
+  <a href="/lab" class="top" data-cursor>← BACK TO LAB</a>
+</footer>
+
+<button class="term-launch" id="termLaunch" data-cursor>▚ terminal</button>
+<div class="term" id="term" role="dialog" aria-label="Interactive terminal">
+  <div class="term__bar">
+    <div class="dots"><i class="r" id="termClose" title="close"></i><i></i><i></i></div>
+    <span class="ttl">— visitor@portfolio: ~/lab/morphism —</span>
+  </div>
+  <div class="term__body" id="termBody"></div>
+  <div class="term__input"><span class="pr">➜ ~</span><input id="termInput" autocomplete="off" spellcheck="false" aria-label="terminal command input" /></div>
+</div>
+
+<script src="/app.js"></script>
+<script>
+/* morpher — page-specific, runs after app.js. Independent of CONFIG. */
+(function(){
+  var caps={
+    skeuo:"<b>Skeuomorphism.</b> Rich textures, layered gradients and glossy highlights make the card look like a physical object you could press.",
+    neu:"<b>Neumorphism.</b> The card is the same colour as the surface — twin shadows extrude it. Notice how faint the edges become.",
+    glass:"<b>Glassmorphism.</b> A blurred backdrop-filter over a vivid background, with a thin bright border, makes the panel read as floating frosted glass."
+  };
+  var names={skeuo:"Skeuomorphism",neu:"Neumorphism",glass:"Glassmorphism"};
+  var stage=document.getElementById('stage'),cap=document.getElementById('mcap'),badge=document.getElementById('badge');
+  var tabs=[].slice.call(document.querySelectorAll('.mtab'));
+  if(!stage) return;
+  cap.innerHTML=caps.skeuo;
+  tabs.forEach(function(t){
+    t.addEventListener('click',function(){
+      var s=t.getAttribute('data-s');
+      stage.setAttribute('data-s',s);
+      cap.innerHTML=caps[s];
+      badge.textContent=names[s];
+      tabs.forEach(function(x){ var on=x===t; x.classList.toggle('on',on); x.setAttribute('aria-selected',on); });
+    });
+  });
+})();
+</script>
+</body>
+</html>
