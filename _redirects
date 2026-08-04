@@ -1,0 +1,4 @@
+# Clean case-study URLs. 200 = rewrite (serves the shared template, keeps the pretty URL).
+# Order matters: first match wins, so the trailing-slash redirect sits above the splat.
+/work/    /work          301
+/work/*   /project.html  200
