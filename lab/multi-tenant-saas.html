@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Multi-tenant SaaS — Lab</title>
+<meta name="description" content="An interactive study of multi-tenant SaaS: row-level security, the pool/bridge/silo isolation models, tenant routing, and the noisy-neighbour problem." />
+<!--
+  One codebase, many tenants, zero data bleeding between them. The interesting
+  engineering all lives inside the word 'zero'. → toggle the RLS switch below.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" href="/styles.css" />
+<style>
+  /* shared demo bits */
+  .mt-panel{ border:1px solid var(--line); border-radius:12px; background:var(--bg-1); padding:clamp(18px,3vw,26px) }
+  .mt-eyebrow{ font-family:var(--ff-mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent); display:flex; align-items:center; gap:12px; margin:0 0 8px }
+  .mt-eyebrow .line{ flex:1; height:1px; background:var(--line) }
+  .mt-eyebrow .tag{ color:var(--faint); letter-spacing:.1em }
+  .mt-lead{ color:var(--muted); font-size:15px; max-width:66ch; margin:0 0 22px }
+  .code{ font-family:var(--ff-mono); font-size:12.5px; background:var(--bg); border:1px solid var(--line-2);
+    border-left:2px solid var(--accent); border-radius:2px; padding:14px 16px; color:var(--text);
+    overflow-x:auto; line-height:1.7; white-space:pre }
+  .code .k{ color:var(--accent) } .code .c{ color:var(--faint) } .code .s{ color:#4cc38a }
+  .seg{ display:inline-flex; border:1px solid var(--line-2); border-radius:100px; overflow:hidden }
+  .seg button{ font-family:var(--ff-mono); font-size:12px; color:var(--muted); background:transparent;
+    border:0; padding:8px 15px; cursor:pointer; transition:all .2s var(--ease) }
+  .seg button+button{ border-left:1px solid var(--line-2) }
+  .seg button.on{ background:var(--accent-dim); color:var(--accent) }
+
+  /* ---- RLS demo ---- */
+  .rls-bar{ display:flex; flex-wrap:wrap; gap:14px 22px; align-items:center; margin-bottom:20px }
+  .rls-field{ display:flex; align-items:center; gap:10px; font-family:var(--ff-mono); font-size:12px; color:var(--faint) }
+  .tchip{ font-family:var(--ff-mono); font-size:12px; padding:7px 13px; border-radius:100px; cursor:pointer;
+    border:1px solid var(--line-2); color:var(--muted); background:transparent; transition:all .18s }
+  .tchip.on{ color:#fff; border-color:transparent }
+  .switch{ position:relative; width:52px; height:28px; border-radius:100px; border:1px solid var(--line-2);
+    background:var(--bg-2); cursor:pointer; transition:all .25s var(--ease); flex:none }
+  .switch i{ position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%;
+    background:var(--muted); transition:all .25s var(--ease) }
+  .switch.on{ background:var(--accent-dim); border-color:var(--accent) }
+  .switch.on i{ left:25px; background:var(--accent) }
+  .switch-wrap{ display:flex; align-items:center; gap:10px }
+  .switch-lbl{ font-family:var(--ff-mono); font-size:12px }
+  .switch-lbl b{ color:var(--accent) }
+
+  .rls-status{ font-family:var(--ff-mono); font-size:13px; margin:16px 0 4px; padding:11px 14px;
+    border-radius:8px; border:1px solid var(--line-2) }
+  .rls-status.safe{ color:#4cc38a; border-color:rgba(76,195,138,.4); background:rgba(76,195,138,.08) }
+  .rls-status.leak{ color:#f2777a; border-color:rgba(242,119,122,.45); background:rgba(242,119,122,.09) }
+
+  .tbl{ width:100%; border-collapse:collapse; font-size:13.5px; margin-top:14px }
+  .tbl th,.tbl td{ text-align:left; padding:9px 12px; border-bottom:1px solid var(--line) }
+  .tbl thead th{ font-family:var(--ff-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); font-weight:400 }
+  .tbl td{ color:var(--muted) } .tbl td.amt{ font-family:var(--ff-mono); color:var(--text) }
+  .tbl tr.leak td{ background:rgba(242,119,122,.10); color:#e9a6a7 }
+  .tbl .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:7px; vertical-align:middle }
+  .tbl .own{ font-family:var(--ff-mono); font-size:11px; color:var(--faint) }
+  .tbl tr.leak .own{ color:#f2777a }
+  .fade-in{ animation:fadeRow .4s var(--ease) }
+  @keyframes fadeRow{ from{ opacity:0; transform:translateY(-4px) } to{ opacity:1; transform:none } }
+
+  /* ---- isolation models ---- */
+  .mtabs{ display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap }
+  .mtab{ flex:1; min-width:120px; padding:12px 14px; border-radius:100px; cursor:pointer;
+    font-family:var(--ff-mono); font-size:12.5px; background:transparent; color:var(--muted);
+    border:1px solid var(--line-2); transition:all .25s var(--ease) }
+  .mtab:hover{ color:var(--text); border-color:var(--accent) }
+  .mtab.on{ color:var(--accent); border-color:var(--accent); background:var(--accent-dim) }
+  .mtab .mi{ color:var(--faint); margin-right:8px } .mtab.on .mi{ color:var(--accent) }
+  .model-stage{ min-height:210px; display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start; padding:6px 0 4px }
+  .db{ border:1px solid var(--line-2); border-radius:10px; background:var(--bg); padding:14px; flex:1; min-width:200px }
+  .db-lbl{ font-family:var(--ff-mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin-bottom:12px; display:flex; align-items:center; gap:8px }
+  .db-lbl::before{ content:"▤"; color:var(--accent) }
+  .schema{ border:1px dashed var(--line-2); border-radius:8px; padding:10px; margin-bottom:10px }
+  .schema:last-child{ margin-bottom:0 }
+  .schema-lbl{ font-family:var(--ff-mono); font-size:11px; color:var(--muted); margin-bottom:8px }
+  .rowchip{ display:inline-flex; align-items:center; gap:6px; font-family:var(--ff-mono); font-size:11px;
+    padding:4px 9px; border-radius:6px; margin:3px 3px 0 0; background:var(--bg-2); color:var(--muted); border:1px solid var(--line) }
+  .rowchip .dot{ width:7px; height:7px; border-radius:50% }
+  .model-stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px;
+    margin-top:18px; background:var(--line); border:1px solid var(--line); border-radius:8px; overflow:hidden }
+  .model-stats div{ background:var(--bg-1); padding:12px 14px }
+  .model-stats .k{ font-family:var(--ff-mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint) }
+  .model-stats .v{ font-family:var(--ff-display); font-weight:600; font-size:15px; margin-top:3px; color:var(--text) }
+  .model-stats .v.good{ color:#4cc38a } .model-stats .v.mid{ color:var(--accent) } .model-stats .v.bad{ color:#f2777a }
+  .model-cap{ font-family:var(--ff-mono); font-size:13px; color:var(--muted); margin-top:14px }
+  .model-cap b{ color:var(--accent) }
+
+  /* ---- routing flow ---- */
+  .flow{ display:flex; flex-wrap:wrap; gap:10px; align-items:stretch; margin-top:6px }
+  .fstep{ flex:1; min-width:150px; border:1px solid var(--line-2); border-radius:9px; background:var(--bg); padding:13px 14px; position:relative; transition:border-color .3s }
+  .fstep .n{ font-family:var(--ff-mono); font-size:10px; color:var(--accent); letter-spacing:.1em }
+  .fstep .t{ font-family:var(--ff-display); font-weight:500; font-size:14px; margin:5px 0 4px }
+  .fstep .d{ font-family:var(--ff-mono); font-size:11.5px; color:var(--muted); word-break:break-all; line-height:1.5 }
+  .fstep.hot{ border-color:var(--accent) }
+  .fstep .d .hl{ color:var(--accent) }
+
+  /* ---- noisy neighbour ---- */
+  .nn-controls{ display:flex; flex-wrap:wrap; gap:12px 16px; align-items:center; margin-bottom:20px }
+  .nn-bars{ display:flex; gap:18px; align-items:flex-end; height:200px; padding:10px 4px 0; border-bottom:1px solid var(--line) }
+  .nn-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100% }
+  .nn-bar{ width:100%; max-width:70px; border-radius:6px 6px 0 0; transition:height .5s var(--ease); position:relative; min-height:4px }
+  .nn-ms{ font-family:var(--ff-mono); font-size:11px; color:var(--muted); position:absolute; top:-20px; left:0; right:0; text-align:center }
+  .nn-name{ font-family:var(--ff-mono); font-size:11px; color:var(--faint); margin-top:9px }
+  .btn2{ font-family:var(--ff-mono); font-size:12px; color:var(--text); background:var(--bg-1);
+    border:1px solid var(--line-2); border-radius:8px; padding:9px 14px; cursor:pointer; transition:all .2s }
+  .btn2:hover{ border-color:var(--accent); color:var(--accent) }
+
+  /* ---- prod notes ---- */
+  .notes{ display:grid; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:10px; overflow:hidden }
+  .note{ background:var(--bg-1); padding:18px 20px; display:grid; grid-template-columns:auto 1fr; gap:16px; align-items:start }
+  .note .idx{ font-family:var(--ff-mono); font-size:12px; color:var(--accent) }
+  .note h4{ font-family:var(--ff-display); font-weight:600; font-size:15px; margin:0 0 5px }
+  .note p{ margin:0; color:var(--muted); font-size:14px; line-height:1.55 }
+  .note code{ font-family:var(--ff-mono); font-size:.86em; color:var(--accent); background:var(--accent-dim); padding:1px 6px; border-radius:4px }
+
+  @media (max-width:600px){ .code{ font-size:11.5px } .tbl{ font-size:12.5px } .tbl th,.tbl td{ padding:8px 8px } }
+</style>
+</head>
+<body id="mtsaasPage" data-keep-title>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav class="nav" id="nav">
+  <a href="/" class="brand" data-cursor>SYS<b>://</b><span id="brandName">PORTFOLIO</span></a>
+  <div class="nav-links">
+    <a href="/work"><span class="idx">01</span> Work</a>
+    <a href="/impact"><span class="idx">02</span> Impact</a>
+    <a href="/about"><span class="idx">03</span> About</a>
+    <a href="/experience"><span class="idx">04</span> Experience</a>
+    <a href="/stack"><span class="idx">05</span> Stack</a>
+    <a href="/contact"><span class="idx">06</span> Contact</a>
+    <a href="/lab" aria-current="page"><span class="idx">07</span> Lab</a>
+  </div>
+  <div class="nav-tools">
+    <div class="clock"><span id="clock">--:--:--</span> <span class="tz" id="tz">UTC</span></div>
+    <button class="toggle" id="themeToggle" data-cursor>◐ THEME</button>
+    <button class="menu-btn" id="menuBtn" data-cursor>MENU</button>
+  </div>
+</nav>
+
+<div class="overlay" id="overlay">
+  <button class="toggle close" id="overlayClose" data-cursor>CLOSE ✕</button>
+  <a href="/work"><span>01</span>Work</a>
+  <a href="/impact"><span>02</span>Impact</a>
+  <a href="/about"><span>03</span>About</a>
+  <a href="/experience"><span>04</span>Experience</a>
+  <a href="/stack"><span>05</span>Stack</a>
+  <a href="/contact"><span>06</span>Contact</a>
+  <a href="/lab"><span>07</span>Lab</a>
+</div>
+
+<div class="hud hud-bl"><span class="k">CRSR</span> <span class="v" id="crsr">0.000 · 0.000</span></div>
+<div class="hud hud-br"><span class="k">SCRL</span> <span class="v" id="scrl">0.00</span> <span class="k">%</span></div>
+
+<main>
+<header class="page-hero wrap">
+  <a class="case-back" href="/lab" data-cursor>← lab / experiments</a>
+  <div class="eyebrow reveal"><span class="n">07</span> / Lab <span class="line"></span> <span class="tag">EXPERIMENT · LIVE</span></div>
+  <h1 style="font-family:var(--ff-display);font-weight:600;font-size:clamp(2.2rem,7.5vw,5.4rem);letter-spacing:-.03em;line-height:.94">Multi-tenant SaaS<span style="color:var(--accent)">.</span></h1>
+  <p class="ah__standfirst reveal" style="margin-top:22px">One codebase serving many customers, with <em style="color:var(--accent);font-style:normal">zero</em> data bleeding between them. Every interesting decision lives inside that word "zero" — so let's poke at it. Flip the switch below and watch a naive query leak.</p>
+</header>
+
+<!-- RLS DEMO -->
+<section class="block wrap" style="padding-top:clamp(30px,5vw,52px)">
+  <div class="mt-eyebrow reveal"><span>01 · The data-leak demo</span><span class="line"></span><span class="tag">ROW-LEVEL SECURITY</span></div>
+  <p class="mt-lead reveal">You're logged into a SaaS billing app. The app runs <code style="font-family:var(--ff-mono);color:var(--accent)">SELECT * FROM invoices</code> and <em>forgets</em> the tenant filter — a one-line mistake that ships constantly. Postgres Row-Level Security is the seatbelt: flip it off and the same query leaks every other customer's invoices.</p>
+
+  <div class="mt-panel reveal">
+    <div class="rls-bar">
+      <div class="rls-field">Logged in as:
+        <span id="tenantChips"></span>
+      </div>
+      <div class="switch-wrap" style="margin-left:auto">
+        <span class="switch-lbl">Row-Level Security: <b id="rlsLbl">ON</b></span>
+        <button class="switch on" id="rlsSwitch" aria-label="Toggle RLS"><i></i></button>
+      </div>
+    </div>
+
+    <div class="code" id="rlsCode"></div>
+    <div class="rls-status safe" id="rlsStatus"></div>
+
+    <table class="tbl">
+      <thead><tr><th>Invoice</th><th>Customer</th><th>Amount</th><th>Status</th><th>Tenant</th></tr></thead>
+      <tbody id="rlsRows"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ISOLATION MODELS -->
+<section class="block wrap" style="padding-top:0">
+  <div class="mt-eyebrow reveal"><span>02 · Three ways to isolate a tenant</span><span class="line"></span><span class="tag">POOL · BRIDGE · SILO</span></div>
+  <p class="mt-lead reveal">RLS handles the shared case, but "where does a tenant's data physically live?" has three canonical answers. Cheaper and denser on the left; more isolated and expensive on the right. Pick your poison per the compliance and cost you can stomach.</p>
+
+  <div class="mt-panel reveal">
+    <div class="mtabs" id="modelTabs" role="tablist">
+      <button class="mtab on" data-m="pool" role="tab"><span class="mi">01</span>Pool</button>
+      <button class="mtab" data-m="bridge" role="tab"><span class="mi">02</span>Bridge</button>
+      <button class="mtab" data-m="silo" role="tab"><span class="mi">03</span>Silo</button>
+    </div>
+    <div class="model-stage" id="modelStage"></div>
+    <div class="model-cap" id="modelCap"></div>
+    <div class="model-stats" id="modelStats"></div>
+  </div>
+</section>
+
+<!-- ROUTING FLOW -->
+<section class="block wrap" style="padding-top:0">
+  <div class="mt-eyebrow reveal"><span>03 · How a request becomes a tenant</span><span class="line"></span><span class="tag">TENANT ROUTING</span></div>
+  <p class="mt-lead reveal">Before any of that isolation matters, the app has to know <em>which</em> tenant is asking. A subdomain (or a JWT claim) gets resolved to a tenant id, which is pinned to the DB session — and from there RLS does the rest. Switch domains and watch the context change.</p>
+
+  <div class="mt-panel reveal">
+    <div class="seg" id="domainSwitch" style="margin-bottom:20px"></div>
+    <div class="flow" id="routeFlow"></div>
+  </div>
+</section>
+
+<!-- NOISY NEIGHBOUR -->
+<section class="block wrap" style="padding-top:0">
+  <div class="mt-eyebrow reveal"><span>04 · The noisy-neighbour problem</span><span class="line"></span><span class="tag">SHARED VS ISOLATED</span></div>
+  <p class="mt-lead reveal">Pooling is efficient until one tenant runs a report that eats every connection. In a shared pool, everyone's latency climbs together. Silo them and the blast stays contained. Spike a tenant and compare.</p>
+
+  <div class="mt-panel reveal">
+    <div class="nn-controls">
+      <div class="seg" id="nnMode">
+        <button data-mode="pool" class="on">Pooled</button>
+        <button data-mode="silo">Siloed</button>
+      </div>
+      <span style="font-family:var(--ff-mono);font-size:12px;color:var(--faint)">Spike a tenant:</span>
+      <span id="nnButtons"></span>
+      <button class="btn2" id="nnReset" style="margin-left:auto">Reset</button>
+    </div>
+    <div class="nn-bars" id="nnBars"></div>
+    <p class="model-cap" id="nnCap" style="margin-top:16px"></p>
+  </div>
+</section>
+
+<!-- PROD NOTES -->
+<section class="block wrap" style="padding-top:0">
+  <div class="mt-eyebrow reveal"><span>05 · What bites you in prod</span><span class="line"></span><span class="tag">HARD-WON</span></div>
+  <div class="notes reveal">
+    <div class="note"><span class="idx">01</span><div><h4>The forgotten <code>WHERE tenant_id</code></h4><p>It <em>will</em> get forgotten — by you, by an ORM, by a junior at 5pm on a Friday. RLS is the backstop that makes that mistake a non-event instead of a breach. Belt <em>and</em> braces: filter in the app <em>and</em> enforce in the database.</p></div></div>
+    <div class="note"><span class="idx">02</span><div><h4>Migrations multiply</h4><p>In pool it's one <code>ALTER TABLE</code>. In silo it's the same migration across N databases, and if #47 fails halfway you now have two schema versions in prod. You need a runner that's idempotent, ordered, and tells you exactly which tenants are behind.</p></div></div>
+    <div class="note"><span class="idx">03</span><div><h4>The session variable must actually be set</h4><p>RLS keys off <code>current_setting('app.current_tenant')</code>. Set it per transaction, from a trusted middleware — never from user input. Miss it and, depending on your policy, you either see nothing or (worse) everything.</p></div></div>
+    <div class="note"><span class="idx">04</span><div><h4>Admin queries need an escape hatch</h4><p>Support tooling and cross-tenant analytics have to bypass RLS deliberately — a separate role with <code>BYPASSRLS</code>, audited and boring. Don't reuse the app role "just this once."</p></div></div>
+    <div class="note"><span class="idx">05</span><div><h4>Connection-pool math ambushes the pool model</h4><p>One shared Postgres has a hard connection ceiling. Thousands of pooled tenants behind PgBouncer is fine — until a few of them each open long transactions. Capacity-plan the pool, not just the CPU.</p></div></div>
+    <div class="note"><span class="idx">06</span><div><h4>Backups and deletes are per-tenant problems</h4><p>"Restore just Globex to last Tuesday" is trivial in silo and genuinely hard in pool. Same with GDPR deletes. Your isolation model quietly decides how painful your worst-day operations are.</p></div></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="cta-band">
+    <h2>The hard part<br>was always <em>"zero"</em>.</h2>
+    <div class="links">
+      <a href="/lab" data-cursor>← more experiments</a>
+      <a href="/work" data-cursor>See the shipped work</a>
+      <a href="/contact" data-cursor>Start a conversation</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <span class="c" id="footC"></span>
+  <a href="/lab" class="top" data-cursor>← BACK TO LAB</a>
+</footer>
+
+<button class="term-launch" id="termLaunch" data-cursor>▚ terminal</button>
+<div class="term" id="term" role="dialog" aria-label="Interactive terminal">
+  <div class="term__bar">
+    <div class="dots"><i class="r" id="termClose" title="close"></i><i></i><i></i></div>
+    <span class="ttl">— visitor@portfolio: ~/lab/multi-tenant —</span>
+  </div>
+  <div class="term__body" id="termBody"></div>
+  <div class="term__input"><span class="pr">➜ ~</span><input id="termInput" autocomplete="off" spellcheck="false" aria-label="terminal command input" /></div>
+</div>
+
+<script src="/app.js"></script>
+<script>
+(function(){
+  /* ---------- shared data ---------- */
+  var TENANTS = [
+    { id:"acme",    name:"Acme Corp", color:"#5aa9ff", uuid:"a1e9c7d2-…-ac3e", domain:"acme.app" },
+    { id:"globex",  name:"Globex",    color:"#4cc38a", uuid:"b2f0d8e3-…-bd4f", domain:"globex.app" },
+    { id:"initech", name:"Initech",   color:"#b48ce0", uuid:"c3a1e9f4-…-ce5a", domain:"initech.app" }
+  ];
+  var T = {}; TENANTS.forEach(function(t){ T[t.id]=t; });
+  var INVOICES = [
+    { id:"INV-1001", cust:"Wayne Enterprises", amt:"$4,200",  st:"paid",    t:"acme" },
+    { id:"INV-1002", cust:"Stark Industries",  amt:"$1,800",  st:"due",     t:"acme" },
+    { id:"INV-1003", cust:"Oscorp",            amt:"$960",    st:"overdue", t:"acme" },
+    { id:"INV-2001", cust:"Soylent",           amt:"$3,100",  st:"paid",    t:"globex" },
+    { id:"INV-2002", cust:"Tyrell Corp",       amt:"$7,400",  st:"due",     t:"globex" },
+    { id:"INV-2003", cust:"Cyberdyne",         amt:"$2,050",  st:"paid",    t:"globex" },
+    { id:"INV-2004", cust:"Nakatomi",          amt:"$540",    st:"overdue", t:"globex" },
+    { id:"INV-3001", cust:"Hooli",             amt:"$12,000", st:"due",     t:"initech" },
+    { id:"INV-3002", cust:"Pied Piper",        amt:"$300",    st:"paid",    t:"initech" },
+    { id:"INV-3003", cust:"Aviato",            amt:"$1,150",  st:"overdue", t:"initech" }
+  ];
+  var $=function(s){ return document.querySelector(s); };
+  function dot(c){ return '<span class="dot" style="background:'+c+'"></span>'; }
+
+  /* ---------- 1 · RLS demo ---------- */
+  var cur="acme", rls=true;
+  var chipWrap=$("#tenantChips"), rows=$("#rlsRows"), status=$("#rlsStatus"),
+      code=$("#rlsCode"), sw=$("#rlsSwitch"), rlsLbl=$("#rlsLbl");
+  TENANTS.forEach(function(t){
+    var b=document.createElement("button"); b.className="tchip"+(t.id===cur?" on":"");
+    b.textContent=t.name; b.dataset.t=t.id;
+    if(t.id===cur){ b.style.background=t.color; }
+    b.addEventListener("click", function(){ cur=t.id; paintChips(); renderRLS(); });
+    chipWrap.appendChild(b);
+  });
+  function paintChips(){
+    [].forEach.call(chipWrap.children, function(b){
+      var on=b.dataset.t===cur; b.classList.toggle("on",on);
+      b.style.background = on ? T[b.dataset.t].color : "transparent";
+      b.style.borderColor = on ? "transparent" : "";
+    });
+  }
+  sw.addEventListener("click", function(){ rls=!rls; sw.classList.toggle("on",rls); rlsLbl.textContent=rls?"ON":"OFF"; renderRLS(); });
+  function renderRLS(){
+    var t=T[cur];
+    code.innerHTML =
+      '<span class="c">-- set by your auth middleware, per request</span>\n'+
+      '<span class="k">SET</span> app.current_tenant = <span class="s">\''+t.uuid+'\'</span>;\n\n'+
+      '<span class="c">-- the app forgot "WHERE tenant_id = …". RLS decides what happens.</span>\n'+
+      '<span class="k">SELECT</span> * <span class="k">FROM</span> invoices;'+
+      (rls ? '\n\n<span class="c">-- policy in effect:</span>\n<span class="k">CREATE POLICY</span> tenant_isolation <span class="k">ON</span> invoices\n  <span class="k">USING</span> (tenant_id = current_setting(<span class="s">\'app.current_tenant\'</span>));' : '');
+
+    var visible = rls ? INVOICES.filter(function(r){ return r.t===cur; }) : INVOICES.slice();
+    rows.innerHTML="";
+    visible.forEach(function(r){
+      var leaked = r.t!==cur;
+      var tr=document.createElement("tr");
+      if(!rls && leaked) tr.className="leak fade-in";
+      var tt=T[r.t];
+      tr.innerHTML='<td class="own">'+r.id+'</td><td>'+r.cust+'</td><td class="amt">'+r.amt+'</td>'+
+        '<td>'+r.st+'</td><td>'+dot(tt.color)+'<span class="own">'+tt.name+(leaked?' · ⚠ not yours':'')+'</span></td>';
+      rows.appendChild(tr);
+    });
+    var mine=INVOICES.filter(function(r){return r.t===cur;}).length;
+    if(rls){
+      status.className="rls-status safe";
+      status.innerHTML="✓ <b>isolated</b> — "+mine+" rows returned, all belonging to "+t.name+". 0 leaked.";
+    } else {
+      var leak=INVOICES.length-mine;
+      status.className="rls-status leak";
+      status.innerHTML="✗ <b>LEAK</b> — "+INVOICES.length+" rows returned. "+leak+" belong to other tenants and just got exposed to "+t.name+".";
+    }
+  }
+  paintChips(); renderRLS();
+
+  /* ---------- 2 · isolation models ---------- */
+  var stage=$("#modelStage"), cap=$("#modelCap"), stats=$("#modelStats"), tabs=$("#modelTabs");
+  function rowchips(tid){ return INVOICES.filter(function(r){return r.t===tid;})
+    .map(function(r){ return '<span class="rowchip">'+dot(T[tid].color)+r.id+'</span>'; }).join(""); }
+  var MODELS={
+    pool:{
+      cap:"<b>Pool</b> — one database, one schema, every tenant's rows in the same tables separated only by <code style='font-family:var(--ff-mono)'>tenant_id</code> + RLS. Densest and cheapest; weakest blast-radius.",
+      stats:[["Isolation","Low","bad"],["Cost / tenant","$","good"],["Blast radius","All tenants","bad"],["Migrations","×1","good"],["Noisy neighbour","High","bad"]],
+      html:function(){
+        var chips=TENANTS.map(function(t){ return rowchips(t.id); }).join("");
+        return '<div class="db"><div class="db-lbl">database · app_db</div>'+
+          '<div class="schema"><div class="schema-lbl">public.invoices &nbsp;— tenant_id column + RLS</div>'+chips+'</div></div>';
+      }
+    },
+    bridge:{
+      cap:"<b>Bridge</b> — one database, a separate <em>schema</em> per tenant. Shared infra, cleaner separation, no cross-tenant table. Migrations now run per schema.",
+      stats:[["Isolation","Medium","mid"],["Cost / tenant","$$","mid"],["Blast radius","One schema","mid"],["Migrations","×N schemas","mid"],["Noisy neighbour","Medium","mid"]],
+      html:function(){
+        return '<div class="db"><div class="db-lbl">database · app_db</div>'+
+          TENANTS.map(function(t){ return '<div class="schema"><div class="schema-lbl">schema · '+t.id+'.invoices</div>'+rowchips(t.id)+'</div>'; }).join("")+'</div>';
+      }
+    },
+    silo:{
+      cap:"<b>Silo</b> — a whole database (or instance) per tenant. Strongest isolation, easiest per-tenant restore/compliance, priciest and most ops to run.",
+      stats:[["Isolation","High","good"],["Cost / tenant","$$$","bad"],["Blast radius","One tenant","good"],["Migrations","×N databases","bad"],["Noisy neighbour","Low","good"]],
+      html:function(){
+        return TENANTS.map(function(t){ return '<div class="db" style="min-width:170px"><div class="db-lbl">database · '+t.id+'_db</div>'+
+          '<div class="schema"><div class="schema-lbl">public.invoices</div>'+rowchips(t.id)+'</div></div>'; }).join("");
+      }
+    }
+  };
+  function showModel(m){
+    var M=MODELS[m];
+    stage.innerHTML=M.html(); cap.innerHTML=M.cap;
+    stats.innerHTML=M.stats.map(function(s){ return '<div><div class="k">'+s[0]+'</div><div class="v '+s[2]+'">'+s[1]+'</div></div>'; }).join("");
+    [].forEach.call(tabs.children, function(b){ b.classList.toggle("on", b.dataset.m===m); });
+  }
+  tabs.addEventListener("click", function(e){ var b=e.target.closest("button"); if(b) showModel(b.dataset.m); });
+  showModel("pool");
+
+  /* ---------- 3 · routing flow ---------- */
+  var domainSwitch=$("#domainSwitch"), routeFlow=$("#routeFlow"), curDomain="acme";
+  TENANTS.forEach(function(t){
+    var b=document.createElement("button"); b.textContent=t.domain; b.dataset.t=t.id;
+    if(t.id===curDomain) b.className="on";
+    b.addEventListener("click", function(){ curDomain=t.id;
+      [].forEach.call(domainSwitch.children,function(x){ x.classList.toggle("on", x.dataset.t===curDomain); });
+      renderFlow(); });
+    domainSwitch.appendChild(b);
+  });
+  function renderFlow(){
+    var t=T[curDomain];
+    var steps=[
+      ["01","Request arrives","<span class='hl'>Host: "+t.domain+"</span>"],
+      ["02","Resolve tenant","SELECT id FROM tenants<br>WHERE domain='"+t.domain+"'"],
+      ["03","Pin the context","SET app.current_tenant<br>= '<span class='hl'>"+t.uuid+"</span>'"],
+      ["04","App runs query","SELECT * FROM invoices"],
+      ["05","RLS filters","policy: tenant_id =<br>current_setting(…)"],
+      ["06","Result","only <span class='hl'>"+t.name+"</span>'s rows"]
+    ];
+    routeFlow.innerHTML=steps.map(function(s,i){
+      return '<div class="fstep'+(i===2||i===5?' hot':'')+'"><div class="n">'+s[0]+'</div><div class="t">'+s[1]+'</div><div class="d">'+s[2]+'</div></div>';
+    }).join("");
+  }
+  renderFlow();
+
+  /* ---------- 4 · noisy neighbour ---------- */
+  var nnBars=$("#nnBars"), nnCap=$("#nnCap"), nnMode=$("#nnMode"), nnButtons=$("#nnButtons"),
+      nnReset=$("#nnReset"), mode="pool", BASE=35, MAXMS=240, decayTimer=null;
+  var lat={}; TENANTS.forEach(function(t){ lat[t.id]=BASE; });
+  TENANTS.forEach(function(t){
+    var b=document.createElement("button"); b.className="btn2"; b.style.marginRight="6px";
+    b.textContent=t.name; b.addEventListener("click", function(){ spike(t.id); });
+    nnButtons.appendChild(b);
+  });
+  function drawBars(){
+    nnBars.innerHTML=TENANTS.map(function(t){
+      var ms=Math.round(lat[t.id]); var h=Math.min(100, (ms/MAXMS)*100);
+      var col = ms>150 ? "#f2777a" : (ms>80 ? "#f5b841" : t.color);
+      return '<div class="nn-col"><div class="nn-bar" style="height:'+h+'%;background:'+col+'">'+
+        '<span class="nn-ms">'+ms+'ms</span></div><div class="nn-name">'+t.name+'</div></div>';
+    }).join("");
+  }
+  function spike(id){
+    clearTimeout(decayTimer);
+    TENANTS.forEach(function(t){
+      if(t.id===id) lat[t.id]=MAXMS-30;
+      else lat[t.id]= mode==="pool" ? 120 : BASE;   // pooled: everyone suffers; siloed: contained
+    });
+    drawBars();
+    nnCap.innerHTML = mode==="pool"
+      ? "<b>Pooled:</b> "+T[id].name+" spiked and dragged <em>every</em> tenant's latency up with it — shared connections, shared pain."
+      : "<b>Siloed:</b> "+T[id].name+" spiked alone. The others never noticed — separate resources, contained blast.";
+    decayTimer=setTimeout(reset, 3200);
+  }
+  function reset(){ clearTimeout(decayTimer); TENANTS.forEach(function(t){ lat[t.id]=BASE; }); drawBars();
+    nnCap.innerHTML="All tenants idling at ~"+BASE+"ms. Spike one and watch the "+(mode==="pool"?"pool":"silo")+" react."; }
+  nnMode.addEventListener("click", function(e){ var b=e.target.closest("button"); if(!b) return;
+    mode=b.dataset.mode; [].forEach.call(nnMode.children,function(x){ x.classList.toggle("on",x.dataset.mode===mode); }); reset(); });
+  nnReset.addEventListener("click", reset);
+  reset();
+})();
+</script>
+</body>
+</html>
