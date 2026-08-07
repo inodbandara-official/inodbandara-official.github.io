@@ -444,7 +444,7 @@
     clearTimeout(decayTimer);
     TENANTS.forEach(function(t){
       if(t.id===id) lat[t.id]=MAXMS-30;
-      else lat[t.id]= mode==="pool" ? 120 : BASE;   // pooled: everyone suffers; siloed: contained
+      else lat[t.id]= mode==="pool" ? 120 : BASE;   // pooled: everyone suffers; siloed: contained;
     });
     drawBars();
     nnCap.innerHTML = mode==="pool"
