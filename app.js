@@ -534,7 +534,36 @@ if(matchMedia("(hover:hover) and (pointer:fine)").matches){
    TERMINAL (signature element, present on every page)
    ============================================================================= */
 const term=$("#term"), termBody=$("#termBody"), termInput=$("#termInput");
-function openTerm(v){ if(!term) return; term.classList.toggle("open",v); if(v) setTimeout(()=>termInput&&termInput.focus(),60); }
+let booted=false;
+function openTerm(v){
+  if(!term) return;
+  term.classList.toggle("open",v);
+  if(v){ setTimeout(()=>termInput&&termInput.focus(),60); boot(); }
+}
+/* CRT power-on: a short POST before the shell is usable. Runs once per page.
+   Skipped entirely for reduced-motion — those users get the prompt immediately. */
+function boot(){
+  if(booted||!termBody) return; booted=true;
+  const welcome=`<span class="mut">${CONFIG.firstName.toLowerCase()}@portfolio</span> — interactive shell. type <span class="acc">help</span> to start.`;
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches){ tprint(welcome); return; }
+  const scene=(window.NET3D&&window.NET3D.scene)||"none";
+  const lines=[
+    [`<span class="mut">SYS://BIOS v2.6 — POST</span>`,40],
+    [`  cpu ......... <span class="acc">ok</span>`,90],
+    [`  memory ...... <span class="acc">ok</span>`,80],
+    [`  storage ..... <span class="acc">ok</span>`,80],
+    [`  gpu ......... <span class="acc">webgl2</span> <span class="mut">(scene: ${scene})</span>`,110],
+    [`  network ..... <span class="acc">up</span> <span class="mut">— it was, briefly, DNS</span>`,180],
+    [`<span class="mut">mounting /home/visitor …</span>`,140],
+  ];
+  let i=0;
+  (function step(){
+    if(i>=lines.length){ tprint(welcome); return; }
+    tprint(lines[i][0]);
+    const d=lines[i][1]; i++;
+    setTimeout(step,d);
+  })();
+}
 if($("#termLaunch")) $("#termLaunch").addEventListener("click",()=>openTerm(!term.classList.contains("open")));
 $$("[data-open-term]").forEach(b=>b.addEventListener("click",()=>openTerm(true)));
 if($("#termClose")) $("#termClose").addEventListener("click",()=>openTerm(false));
@@ -554,10 +583,13 @@ const CMDS={
   <span class="acc">xp</span>         experience           ( <span class="mut">opens /experience</span> )
   <span class="acc">contact</span>    how to reach me      ( <span class="mut">opens /contact</span> )
   <span class="acc">theme</span>      toggle light / dark
-  <span class="acc">net</span>        the 3D mesh behind this page  ( <span class="mut">net off</span> )
-  <span class="acc">attack</span>     flood a node and watch it survive
-  <span class="acc">harden</span>     apply the baseline
+  <span class="acc">net</span>        the 3D scene behind this page ( <span class="mut">net off</span> )
   <span class="acc">clear</span>      wipe the screen
+<span class="mut">scene verbs — each page runs a different one:</span>
+  <span class="acc">attack</span> <span class="mut">·</span> <span class="acc">harden</span>    home — flood a node, watch it hold
+  <span class="acc">kubectl</span>          /work — get pods · rollout · drain · scale
+  <span class="acc">rack</span>             /stack — status · <span class="mut">rack fail</span>
+  <span class="acc">build</span>            /experience — push one through the pipeline
   <span class="mut">try:</span> <span class="acc">sudo hire</span>  <span class="mut">·  there are a few undocumented ones. it's a security portfolio; go poke.</span>`; },
   whoami(){ return `${CONFIG.firstName} ${CONFIG.lastName} — ${CONFIG.role}\n<span class="mut">${CONFIG.location} · ${CONFIG.status}</span>`; },
   about(){ setTimeout(()=>location.href="/about",600); return `${CONFIG.thesis}\n<span class="mut">opening /about …</span>`; },
@@ -586,34 +618,59 @@ const CMDS={
   man(){ return `<span class="mut">no manual pages here. that's the entire reason I write runbooks.</span>`; },
   exit(){ return `<span class="mut">there is no exit — this is a shell inside a portfolio inside a browser. (or: hire me. that's also an exit.)</span>`; },
   hello(){ return `hey. <span class="mut">type</span> <span class="acc">help</span> <span class="mut">if you're lost, or</span> <span class="acc">sudo hire</span> <span class="mut">if you're decisive.</span>`; },
-  /* ---- the 3D layer (net3d.js). yes, the background is interactive. ---- */
+  /* ---- the 3D layer (net3d.js). yes, the background is interactive. ----
+     Each page runs a different scene, so each scene gets its own verbs. A verb
+     used on the wrong page tells you which page it lives on rather than sulking. */
   net(arg){
-    const N=window.NET3D;
-    if(!N) return `<span class="mut">net: no render context. WebGL is off, the viewport is narrow, or you asked for reduced motion — and I respect all three.</span>`;
+    const N=window.NET3D; if(!N) return NO3D;
     const a=(arg||"").trim();
-    if(a==="off") { N.toggle(false); return `mesh <span class="acc">offline</span>. <span class="mut">battery thanks you.</span>`; }
-    if(a==="on")  { N.toggle(true);  return `mesh <span class="acc">online</span>.`; }
+    if(a==="off"){ N.toggle(false); return `scene <span class="acc">offline</span>. <span class="mut">battery thanks you.</span>`; }
+    if(a==="on") { N.toggle(true);  return `scene <span class="acc">online</span>.`; }
     const s=N.stats();
-    return `<span class="acc">${s.renderer}</span>
-  nodes    ${s.nodes} across ${s.layers} layers
-  links    ${s.links}
-  in-flight ${s.packets} packets
-  camera   ${s.layer} · depth ${s.depth}
-<span class="mut">try: </span><span class="acc">attack</span><span class="mut">, </span><span class="acc">harden</span><span class="mut">, </span><span class="acc">net off</span>`;
+    const rows=Object.keys(s).filter(k=>k!=="renderer").map(k=>`  ${k.padEnd(11)}${s[k]}`).join("\n");
+    return `<span class="acc">${s.renderer}</span>\n${rows}\n<span class="mut">verbs here: </span><span class="acc">${SCENE_VERBS[s.scene]||"net"}</span>`;
   },
   attack(){
-    const N=window.NET3D;
-    if(!N) return `<span class="mut">nothing to attack — the mesh isn't rendering.</span>`;
-    return N.attack()
+    const g=scene3d("mesh","the home page"); if(g) return g;
+    return window.NET3D.attack()
       ? `injecting hostile traffic… <span class="mut">watch the mesh. it holds.</span>`
       : `<span class="mut">an incident is already in progress. one crisis at a time.</span>`;
   },
   harden(){
-    const N=window.NET3D;
-    if(!N) return `<span class="mut">no mesh to harden. the baseline is, admittedly, very secure right now.</span>`;
-    N.harden(); return `baseline applied. <span class="mut">hardening is a design input, not a patch.</span>`;
+    const g=scene3d("mesh","the home page"); if(g) return g;
+    window.NET3D.harden(); return `baseline applied. <span class="mut">hardening is a design input, not a patch.</span>`;
+  },
+  kubectl(arg){
+    const g=scene3d("cluster","/work"); if(g) return g;
+    const api=window.NET3D.api, a=(arg||"").trim(), s=api.get();
+    if(/^get\s+no/.test(a))   return `NAME        STATUS   PODS\n`+Array.from({length:s.nodes},(_,i)=>`node-${String(i).padStart(2,"0")}    <span class="acc">Ready</span>    —`).join("\n");
+    if(/^get\s+po/.test(a))   return `${s.running} pods <span class="acc">Running</span>, ${s.pods-s.running} in transition · generation <span class="acc">${s.generation}</span>`;
+    if(/^rollout/.test(a))    return api.rollout() ? `rolling update started. <span class="mut">watch the fleet go green, node by node.</span>` : `<span class="mut">a rollout is already in progress.</span>`;
+    if(/^drain/.test(a)){ const r=api.drain(); return r ? `node-${String(r.node).padStart(2,"0")} cordoned. <span class="acc">${r.moved}</span> pods rescheduled. <span class="mut">this is the part that's supposed to be boring.</span>` : `<span class="mut">that node is already down.</span>`; }
+    if(/^scale/.test(a)){ const n=Math.max(1,Math.min(9,parseInt(a.split(/\s+/)[1],10)||3)); return `scaled up: <span class="acc">${api.scale(n)}</span> new pods scheduled.`; }
+    return `usage: <span class="acc">kubectl</span> get nodes | get pods | rollout | drain | scale N`;
+  },
+  rack(arg){
+    const g=scene3d("rack","/stack"); if(g) return g;
+    const api=window.NET3D.api;
+    if(/^fail/.test((arg||"").trim())){ const r=api.fail(); return r ? `<span class="acc">simulated disk failure</span> — rack ${r.rack}, U${r.u}. <span class="mut">rebuild starts in 3s.</span>` : `<span class="mut">already degraded, or the die landed on a switch. try again.</span>`; }
+    const s=api.get();
+    return `racks     ${s.racks}\nusable    ${s.units}U\ndegraded  ${s.degraded?`<span class="acc">${s.degraded}</span>`:"0"}\n<span class="mut">try: </span><span class="acc">rack fail</span>`;
+  },
+  build(){
+    const g=scene3d("pipeline","/experience"); if(g) return g;
+    return `build <span class="acc">#${window.NET3D.api.trigger()}</span> queued. <span class="mut">commit → build → test → scan → package → deploy.</span>`;
   },
 };
+const NO3D=`<span class="mut">no render context. WebGL is off, the viewport is narrow, or you asked for reduced motion — and I respect all three.</span>`;
+const SCENE_VERBS={ mesh:"attack · harden", cluster:"kubectl", rack:"rack", pipeline:"build" };
+/* returns an error string when the current page isn't running the scene a verb needs */
+function scene3d(name,where){
+  const N=window.NET3D;
+  if(!N) return NO3D;
+  if(N.scene!==name) return `<span class="mut">that runs on the <b>${name}</b> scene — it lives on </span><span class="acc">${where}</span><span class="mut">. this page is running </span><span class="acc">${N.scene}</span><span class="mut">.</span>`;
+  return null;
+}
 function trun(raw){
   const [cmd,...rest]=raw.trim().split(/\s+/);
   if(!cmd) return; techo(raw);
@@ -629,7 +686,7 @@ function trun(raw){
     tprint(quips[Math.floor(Math.random()*quips.length)]);
   }
 }
-if(termBody) tprint(`<span class="mut">${CONFIG.firstName.toLowerCase()}@portfolio</span> — interactive shell. type <span class="acc">help</span> to start.`);
+/* the greeting is printed by boot() on first open, after the POST sequence */
 if(termInput){
   const hist=[]; let hp=-1;
   termInput.addEventListener("keydown",e=>{
