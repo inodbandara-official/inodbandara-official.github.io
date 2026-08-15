@@ -15,7 +15,9 @@ const CONFIG = {
   tzLabel:   "+0530",
   status:    "Will work for Pizza",
   email:     "officialinod@gmail.com",
-  resumeUrl: "resume.pdf",
+  resumeUrl: "/resume.pdf",   // leading slash matters: a relative path resolves
+                              // to /work/resume.pdf on the nested case-study pages.
+                              // NOTE: this file does not exist in the repo yet.
   socials: [
     { label: "GitHub",   url: "https://github.com/indobandara-official" },
     { label: "LinkedIn", url: "https://www.linkedin.com/in/inod-bandara-555722228/" },
@@ -518,6 +520,9 @@ if(matchMedia("(hover:hover) and (pointer:fine)").matches){
       mx=e.clientX; my=e.clientY;
       dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
       const c=$("#crsr"); if(c) c.textContent=(mx/innerWidth).toFixed(3)+" · "+(my/innerHeight).toFixed(3);
+      /* feed the CSS 3D layer: normalised -1..1 cursor offsets (see .d3-tilt) */
+      root.style.setProperty("--tx",((mx/innerWidth)*2-1).toFixed(4));
+      root.style.setProperty("--ty",((my/innerHeight)*2-1).toFixed(4));
     });
     (function loop(){ rx+=(mx-rx)*.16; ry+=(my-ry)*.16; ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`; requestAnimationFrame(loop); })();
     document.addEventListener("mouseover",e=>{ if(e.target.closest("[data-cursor],a,button,input,textarea,select,.project__head,.portrait")) ring.classList.add("hover"); });
@@ -549,6 +554,9 @@ const CMDS={
   <span class="acc">xp</span>         experience           ( <span class="mut">opens /experience</span> )
   <span class="acc">contact</span>    how to reach me      ( <span class="mut">opens /contact</span> )
   <span class="acc">theme</span>      toggle light / dark
+  <span class="acc">net</span>        the 3D mesh behind this page  ( <span class="mut">net off</span> )
+  <span class="acc">attack</span>     flood a node and watch it survive
+  <span class="acc">harden</span>     apply the baseline
   <span class="acc">clear</span>      wipe the screen
   <span class="mut">try:</span> <span class="acc">sudo hire</span>  <span class="mut">·  there are a few undocumented ones. it's a security portfolio; go poke.</span>`; },
   whoami(){ return `${CONFIG.firstName} ${CONFIG.lastName} — ${CONFIG.role}\n<span class="mut">${CONFIG.location} · ${CONFIG.status}</span>`; },
@@ -578,6 +586,33 @@ const CMDS={
   man(){ return `<span class="mut">no manual pages here. that's the entire reason I write runbooks.</span>`; },
   exit(){ return `<span class="mut">there is no exit — this is a shell inside a portfolio inside a browser. (or: hire me. that's also an exit.)</span>`; },
   hello(){ return `hey. <span class="mut">type</span> <span class="acc">help</span> <span class="mut">if you're lost, or</span> <span class="acc">sudo hire</span> <span class="mut">if you're decisive.</span>`; },
+  /* ---- the 3D layer (net3d.js). yes, the background is interactive. ---- */
+  net(arg){
+    const N=window.NET3D;
+    if(!N) return `<span class="mut">net: no render context. WebGL is off, the viewport is narrow, or you asked for reduced motion — and I respect all three.</span>`;
+    const a=(arg||"").trim();
+    if(a==="off") { N.toggle(false); return `mesh <span class="acc">offline</span>. <span class="mut">battery thanks you.</span>`; }
+    if(a==="on")  { N.toggle(true);  return `mesh <span class="acc">online</span>.`; }
+    const s=N.stats();
+    return `<span class="acc">${s.renderer}</span>
+  nodes    ${s.nodes} across ${s.layers} layers
+  links    ${s.links}
+  in-flight ${s.packets} packets
+  camera   ${s.layer} · depth ${s.depth}
+<span class="mut">try: </span><span class="acc">attack</span><span class="mut">, </span><span class="acc">harden</span><span class="mut">, </span><span class="acc">net off</span>`;
+  },
+  attack(){
+    const N=window.NET3D;
+    if(!N) return `<span class="mut">nothing to attack — the mesh isn't rendering.</span>`;
+    return N.attack()
+      ? `injecting hostile traffic… <span class="mut">watch the mesh. it holds.</span>`
+      : `<span class="mut">an incident is already in progress. one crisis at a time.</span>`;
+  },
+  harden(){
+    const N=window.NET3D;
+    if(!N) return `<span class="mut">no mesh to harden. the baseline is, admittedly, very secure right now.</span>`;
+    N.harden(); return `baseline applied. <span class="mut">hardening is a design input, not a patch.</span>`;
+  },
 };
 function trun(raw){
   const [cmd,...rest]=raw.trim().split(/\s+/);

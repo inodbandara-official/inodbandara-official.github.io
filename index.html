@@ -16,7 +16,10 @@
 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="/styles.css" />
 </head>
-<body>
+<body class="d3">
+
+<!-- the third dimension. hand-written WebGL2, no library. see net3d.js -->
+<canvas id="net3d" aria-hidden="true"></canvas>
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
@@ -52,13 +55,14 @@
 
 <div class="hud hud-bl"><span class="k">CRSR</span> <span class="v" id="crsr">0.000 · 0.000</span></div>
 <div class="hud hud-br"><span class="k">SCRL</span> <span class="v" id="scrl">0.00</span> <span class="k">%</span></div>
+<div class="hud hud-bc" id="netHud" aria-hidden="true"><span class="k">NET</span> <span class="v" id="netLayer">L1/PHY</span> <span class="k">·</span> <span class="v" id="netState">NOMINAL</span></div>
 
 <a id="top"></a>
 <main>
 
-<header class="hero wrap">
+<header class="hero wrap d3-tilt">
   <p class="thesis" id="thesis"></p>
-  <h1><span class="l1" id="nameL1">YOUR</span><span class="l2" id="nameL2">NAME<span class="dot">.</span></span></h1>
+  <h1 class="d3-lift"><span class="l1" id="nameL1">YOUR</span><span class="l2" id="nameL2">NAME<span class="dot">.</span></span></h1>
   <div class="meta-row">
     <span class="m" id="roleMeta"></span>
     <span class="m">LOCATION — <b id="locMeta"></b></span>
@@ -157,5 +161,6 @@
 </div>
 
 <script src="/app.js"></script>
+<script src="/net3d.js"></script>
 </body>
 </html>

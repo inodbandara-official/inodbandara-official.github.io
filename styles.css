@@ -527,3 +527,72 @@ html[data-theme="light"] .tech:hover img{ filter:grayscale(1) brightness(0) inve
 .tech.noicon img{ display:none; }
 .tech.noicon::after{ content:"▪"; color:var(--accent); font-size:26px; line-height:40px; height:40px; display:flex; align-items:center; }
 @media (max-width:430px){ .tech-grid{ grid-template-columns:repeat(auto-fill, minmax(84px,1fr)); gap:9px; } .tech{ padding:18px 8px 13px; } .tech img{ width:34px; height:34px; } }
+
+/* =============================================================================
+   NET3D  —  the WebGL layer (net3d.js) and the CSS-3D depth that sits on top.
+   The canvas is pure atmosphere: pointer-events:none, z-index below content,
+   and it removes itself entirely on reduced-motion / narrow / no-WebGL.
+   ============================================================================= */
+#net3d{
+  position:fixed; inset:0; width:100%; height:100%;
+  z-index:0; pointer-events:none; display:block;
+  transition:opacity .6s var(--ease);
+}
+html[data-theme="light"] #net3d{opacity:.7}
+
+/* content rides above the canvas. NOTE: only the in-flow elements get
+   position:relative — nav / hud / terminal are position:fixed already and
+   must stay that way. */
+main, footer{position:relative; z-index:1}
+
+/* bottom-centre HUD readout for the network state */
+.hud-bc{
+  left:50%; bottom:18px; transform:translateX(-50%);
+  white-space:nowrap; display:flex; gap:8px; align-items:center;
+}
+.hud-bc .v{color:var(--text)}
+.hud-bc .v.alert{color:#ff4d4d}
+html[data-theme="light"] .hud-bc .v.alert{color:#b3261e}
+@media (max-width:900px){ .hud-bc{display:none} }
+@media (max-width:780px){ #net3d{display:none!important} }
+@media (prefers-reduced-motion: reduce){ #net3d{display:none!important} .hud-bc{display:none} }
+
+/* ---------- CSS 3D: real depth on the content itself ----------
+   --tx / --ty are the normalised cursor offsets, written by app.js. ---------- */
+/* IMPORTANT: `perspective` is never set on <body>. A perspective on an
+   ancestor makes it the containing block for position:fixed descendants,
+   which would detach the nav, the HUD, the cursor and this very canvas from
+   the viewport. Each tilted element carries its own perspective() instead. */
+.d3{ /* marker class only — deliberately no perspective property here */ }
+.d3-tilt{
+  transform-style:preserve-3d;
+  transform:
+    perspective(1400px)
+    rotateX(calc(var(--ty, 0) * -3.2deg))
+    rotateY(calc(var(--tx, 0) *  4.2deg))
+    translateZ(0);
+  transition:transform .45s var(--ease);
+  will-change:transform;
+}
+.d3-lift{ transform:translateZ(28px); }
+.hero h1{ transform-style:preserve-3d; }
+
+/* projects gain parallax depth on hover — the card leans toward you */
+.project{ transform-style:preserve-3d; transition:transform .5s var(--ease); }
+.project:hover{
+  transform:
+    perspective(1100px)
+    rotateX(calc(var(--ty, 0) * -2.4deg))
+    rotateY(calc(var(--tx, 0) *  3.4deg))
+    translateZ(18px);
+}
+.stat, .principle, .stack-col, .comp{ transform-style:preserve-3d; transition:transform .5s var(--ease), border-color .3s; }
+.stat:hover, .principle:hover, .stack-col:hover{
+  transform:perspective(900px) rotateY(calc(var(--tx, 0) * 4deg)) rotateX(calc(var(--ty, 0) * -3deg)) translateZ(22px);
+}
+@media (prefers-reduced-motion: reduce){
+  .d3-tilt, .project:hover, .stat:hover, .principle:hover, .stack-col:hover{transform:none}
+}
+@media (hover:none),(pointer:coarse){
+  .d3-tilt{transform:none}
+}

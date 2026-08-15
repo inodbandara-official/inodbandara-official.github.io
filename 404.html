@@ -16,7 +16,8 @@
 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="/styles.css" />
 </head>
-<body data-keep-title>
+<body class="d3" data-keep-title>
+<canvas id="net3d" aria-hidden="true"></canvas>
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
@@ -52,6 +53,7 @@
 
 <div class="hud hud-bl"><span class="k">CRSR</span> <span class="v" id="crsr">0.000 · 0.000</span></div>
 <div class="hud hud-br"><span class="k">STAT</span> <span class="v">404</span></div>
+<div class="hud hud-bc" id="netHud" aria-hidden="true"><span class="k">NET</span> <span class="v" id="netLayer">L1/PHY</span> <span class="k">&middot;</span> <span class="v" id="netState">NOMINAL</span></div>
 
 <main>
 <header class="nf wrap">
@@ -92,5 +94,6 @@ status: <span class="bad">404 Not Found</span>   cause: <span class="k">probably
 </div>
 
 <script src="/app.js"></script>
+<script src="/net3d.js"></script>
 </body>
 </html>

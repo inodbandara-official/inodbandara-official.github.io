@@ -3,20 +3,19 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Stack — the toolbox</title>
-<meta name="description" content="The stack — languages, frameworks, databases, and the infrastructure tools I run day to day." />
+<title>Work — selected case studies</title>
+<meta name="description" content="Selected work — infrastructure, security, and systems projects, each with the full story." />
 <!--
-  Icons are monochrome on purpose — a wall of brand colours is a ransom note,
-  not a design. They bloom to full contrast on hover. It was, briefly, DNS.
+  Every project here shipped and survived contact with production. The ones
+  under NDA survived too; they're just shy. → sudo hire
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="/styles.css" />
 </head>
-<body class="d3" id="stackPage" data-keep-title>
+<body class="d3" id="workPage" data-keep-title>
 <canvas id="net3d" aria-hidden="true"></canvas>
 
 <div class="cursor" id="cursor"></div>
@@ -25,11 +24,11 @@
 <nav class="nav" id="nav">
   <a href="/" class="brand" data-cursor>SYS<b>://</b><span id="brandName">PORTFOLIO</span></a>
   <div class="nav-links">
-    <a href="/work"><span class="idx">01</span> Work</a>
+    <a href="/work" aria-current="page"><span class="idx">01</span> Work</a>
     <a href="/impact"><span class="idx">02</span> Impact</a>
     <a href="/about"><span class="idx">03</span> About</a>
     <a href="/experience"><span class="idx">04</span> Experience</a>
-    <a href="/stack" aria-current="page"><span class="idx">05</span> Stack</a>
+    <a href="/stack"><span class="idx">05</span> Stack</a>
     <a href="/contact"><span class="idx">06</span> Contact</a>
     <a href="/lab"><span class="idx">07</span> Lab</a>
   </div>
@@ -57,30 +56,22 @@
 
 <main>
 <header class="page-hero wrap">
-  <div class="eyebrow reveal"><span class="n">05</span> / Stack <span class="line"></span> <span class="tag">— WHAT I RUN (AND WHAT RUNS ME)</span></div>
-  <h1 style="font-family:var(--ff-display);font-weight:600;font-size:clamp(2.6rem,9vw,7rem);letter-spacing:-.03em;line-height:.9">Stack<span style="color:var(--accent)">.</span></h1>
-  <p class="ah__standfirst reveal" style="margin-top:22px">The toolbox — languages, frameworks, databases, and the infrastructure I actually reach for. Hover any tile to bring it to life.</p>
+  <div class="eyebrow reveal"><span class="n">01</span> / Work <span class="line"></span> <span class="tag" id="workCount">— PROJECTS</span></div>
+  <h1 style="font-family:var(--ff-display);font-weight:600;font-size:clamp(2.6rem,9vw,7rem);letter-spacing:-.03em;line-height:.9">Work<span style="color:var(--accent)">.</span></h1>
+  <p class="ah__standfirst reveal" style="margin-top:22px">The projects I can talk about — each one expandable here, with the full context → approach → system → outcome a click away.</p>
 </header>
 
-<!-- ICON WALL -->
-<section class="block wrap" style="padding-top:clamp(36px,6vw,64px)">
-  <div class="eyebrow reveal"><span class="n">/</span> Technologies <span class="line"></span> <span class="tag">— THE FULL TOOLBOX</span></div>
-  <div class="tech-wrap" id="techGrid"></div>
-</section>
-
-<!-- CURATED STACK (kept from before) -->
-<section class="block wrap" style="padding-top:0">
-  <div class="eyebrow reveal"><span class="n">/</span> Day to day <span class="line"></span> <span class="tag">— WHAT I ACTUALLY RUN</span></div>
-  <div class="stack-grid" id="stackGrid"></div>
+<section class="block wrap" style="padding-top:clamp(30px,5vw,60px)">
+  <div id="projects"></div>
 </section>
 
 <section class="wrap">
   <div class="cta-band">
-    <h2>Tools are tools.<br>Let's build the <em>system</em>.</h2>
+    <h2>Like the <em>how</em>?<br>Let's make some.</h2>
     <div class="links">
-      <a href="/work" data-cursor>See the work</a>
-      <a href="/experience" data-cursor>The experience</a>
-      <a href="/contact" data-cursor>Get in touch</a>
+      <a href="/impact" data-cursor>The numbers</a>
+      <a href="/stack" data-cursor>The toolbox</a>
+      <a href="/contact" data-cursor>Start a conversation</a>
     </div>
   </div>
 </section>
