@@ -9,6 +9,12 @@
   Icons are monochrome on purpose — a wall of brand colours is a ransom note,
   not a design. They bloom to full contrast on hover. It was, briefly, DNS.
 -->
+<script type="importmap">
+{ "imports": {
+    "three": "/vendor/three/three.module.js",
+    "three/addons/": "/vendor/three/jsm/"
+} }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
@@ -16,8 +22,9 @@
 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="/styles.css" />
 </head>
-<body class="d3" data-scene="rack" id="stackPage" data-keep-title>
-<canvas id="net3d" aria-hidden="true"></canvas>
+<body data-hero="vault"class="d3" id="stackPage" data-keep-title>
+<canvas id="hero3d"></canvas>
+<div class="hero-scrim" aria-hidden="true"></div>
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
@@ -102,6 +109,6 @@
 </div>
 
 <script src="/app.js"></script>
-<script src="/net3d.js"></script>
+<script type="module" src="/hero3d.js"></script>
 </body>
 </html>

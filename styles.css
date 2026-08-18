@@ -676,3 +676,192 @@ html[data-theme="light"] .term::before{opacity:.28}
    into nothing, which defeats the whole point of showing them through */
 #stackPage .tech{ background:color-mix(in srgb, var(--bg-1) 48%, transparent); }
 #stackPage .tech:hover{ background:var(--bg-2); }
+
+/* The Three.js hero canvas (hero3d.js) — same layering contract as #net3d, but
+   it paints an opaque background because the scene relies on distance fog. */
+#hero3d{
+  position:fixed; inset:0; width:100%; height:100%;
+  z-index:0; display:block;
+  transition:opacity .35s linear;
+  /* the tower is navigation, so it must be clickable. Page content sits at
+     z-index 1 and still swallows its own clicks; only bare background reaches
+     the canvas, and hero3d.js ignores picks once the page scrolls past. */
+  pointer-events:auto;
+}
+@media (max-width:780px){ #hero3d{display:none!important} }
+@media (prefers-reduced-motion: reduce){ #hero3d{display:none!important} }
+
+/* Scrim over the hero canvas. The hall is lit, the type is white, and the two
+   were fighting — this weights the left/bottom (where the copy lives) toward
+   the page background while leaving the far end of the aisle clear. */
+.hero-scrim{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    linear-gradient(100deg,
+      color-mix(in srgb, var(--bg) 94%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 84%, transparent) 26%,
+      color-mix(in srgb, var(--bg) 42%, transparent) 52%,
+      transparent 82%),
+    linear-gradient(to top,
+      var(--bg) 0%,
+      color-mix(in srgb, var(--bg) 55%, transparent) 22%,
+      transparent 55%);
+}
+@media (max-width:780px){ .hero-scrim{display:none} }
+@media (prefers-reduced-motion: reduce){ .hero-scrim{display:none} }
+
+/* =============================================================================
+   PAGODA TIER LABEL  —  the floor name that appears when you hover a storey.
+   Purely a hover affordance for the 3D tower; the real <nav> is untouched and
+   remains the accessible, keyboard-reachable route through the site.
+   ============================================================================= */
+.tier-label{
+  position:fixed; z-index:55; pointer-events:none;
+  transform:translate(-50%,-50%) scale(.92);
+  display:flex; align-items:center; gap:10px;
+  padding:9px 16px; border-radius:100px;
+  background:color-mix(in srgb, var(--bg) 82%, transparent);
+  border:1px solid var(--accent);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  font-family:var(--ff-mono); font-size:12px; letter-spacing:.10em;
+  white-space:nowrap; opacity:0;
+  transition:opacity .18s var(--ease), transform .22s var(--ease);
+  box-shadow:0 6px 30px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.tier-label.on{opacity:1; transform:translate(-50%,-50%) scale(1)}
+.tier-label .n{color:var(--accent)}
+.tier-label b{color:var(--text); font-weight:500; letter-spacing:.14em}
+.tier-label .l{color:var(--faint); font-size:10.5px}
+@media (max-width:780px){ .tier-label{display:none} }
+@media (prefers-reduced-motion: reduce){ .tier-label{display:none} }
+
+/* the tower is clickable, so say so */
+body.tier-pick, body.tier-pick main{cursor:pointer}
+
+/* =============================================================================
+   THE GRAND HERO  (home only — .hero-grand)
+   Set like an inscription: a colophon up the left margin, a hairline splitting
+   the name, a plaque with joinery ticks, and a seal stamped in the corner.
+   Scoped so the compact page headers elsewhere are untouched.
+   ============================================================================= */
+.hero-grand{
+  position:relative;
+  min-height:100svh;
+  display:flex; flex-direction:column; justify-content:center;
+  padding-top:92px; padding-bottom:96px;
+}
+.hero-grand__body{ max-width:min(58ch, 62%); }
+
+/* ---- the vertical rail ---- */
+.hero-grand .rail{
+  position:absolute; left:-4px; top:50%; transform:translateY(-50%);
+  writing-mode:vertical-rl; text-orientation:mixed;
+  display:flex; align-items:center; gap:14px;
+  font-family:var(--ff-mono); font-size:10.5px; letter-spacing:.34em;
+  color:var(--faint); text-transform:uppercase; user-select:none;
+}
+.hero-grand .rail i{ display:block; width:1px; height:26px; background:var(--line-2); }
+@media (max-width:1180px){ .hero-grand .rail{display:none} }
+
+/* ---- eyebrow mark ---- */
+.hero-grand .mark{
+  display:flex; align-items:center; gap:16px; margin-bottom:22px;
+  font-family:var(--ff-mono); font-size:10.5px; letter-spacing:.30em; text-transform:uppercase;
+}
+/* NOT .tick — that class already exists as an absolutely-positioned corner
+   crosshair (line ~296) and would drop this out of flow. */
+.hero-grand .mark .dmd{ width:9px; height:9px; border:1px solid var(--accent);
+  transform:rotate(45deg); flex:none; position:static }
+.hero-grand .mark .lbl{ color:var(--accent) }
+.hero-grand .mark .lbl.dim{ color:var(--faint) }
+.hero-grand .mark .rule{ width:clamp(30px,7vw,86px); height:1px; background:var(--line-2) }
+
+.hero-grand .thesis{ max-width:44ch; margin-bottom:26px }
+
+/* ---- the name, split by a hairline ---- */
+.hero-grand .grandname{
+  font-family:var(--ff-display); font-weight:600; text-transform:uppercase;
+  font-size:clamp(2.8rem,8.4vw,7.2rem); line-height:.92; letter-spacing:-.02em;
+}
+.hero-grand .grandname .l1{ display:block; color:var(--muted); font-weight:500 }
+.hero-grand .grandname .l2{ display:block; color:var(--text) }
+.hero-grand .grandname .dot{ color:var(--accent) }
+.hero-grand .grandname .hair{
+  display:block; height:1px; width:min(100%, 30ch);
+  margin:.16em 0 .14em;
+  background:linear-gradient(90deg, var(--accent) 0 34px, var(--line-2) 34px 100%);
+}
+
+/* ---- the plaque ---- */
+.hero-grand .plaque{
+  position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:12px 18px;
+  margin-top:28px; padding:14px 18px;
+  border:1px solid var(--line-2);
+  font-family:var(--ff-mono); font-size:12px; letter-spacing:.06em;
+  background:color-mix(in srgb, var(--bg) 55%, transparent);
+}
+.hero-grand .plaque .m{ color:var(--muted) }
+.hero-grand .plaque .m b{ color:var(--text); font-weight:500 }
+.hero-grand .plaque .status{ color:var(--accent) }
+.hero-grand .plaque .status::before{ content:"● "; font-size:9px; vertical-align:middle; animation:pulse 2s infinite }
+.hero-grand .plaque .sep{ width:1px; height:14px; background:var(--line-2) }
+/* joinery ticks at the corners */
+.hero-grand .plaque .c{ position:absolute; width:7px; height:7px; border:1px solid var(--accent) }
+.hero-grand .plaque .tl{ top:-1px; left:-1px; border-right:0; border-bottom:0 }
+.hero-grand .plaque .tr{ top:-1px; right:-1px; border-left:0; border-bottom:0 }
+.hero-grand .plaque .bl{ bottom:-1px; left:-1px; border-right:0; border-top:0 }
+.hero-grand .plaque .br{ bottom:-1px; right:-1px; border-left:0; border-top:0 }
+
+.hero-grand .cta{ margin-top:24px; gap:10px }
+.hero-grand .cta .btn{ padding:12px 17px; font-size:12px }
+
+/* ---- the wayfinding hint (without it, nobody finds the tower) ---- */
+.hero-grand .wayfind{
+  display:flex; align-items:center; gap:10px; margin-top:20px;
+  font-family:var(--ff-mono); font-size:11.5px; letter-spacing:.05em; color:var(--muted);
+}
+.hero-grand .wayfind .pip{
+  width:6px; height:6px; border-radius:50%; background:var(--accent); flex:none;
+  box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 70%, transparent);
+  animation:pipPulse 2.4s var(--ease) infinite;
+}
+@keyframes pipPulse{
+  0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent)}
+  70%{box-shadow:0 0 0 11px transparent}
+  100%{box-shadow:0 0 0 0 transparent}
+}
+@media (max-width:900px){ .hero-grand .wayfind{display:none} }
+
+/* ---- the seal ---- */
+.hero-grand .seal{
+  position:absolute; right:2px; bottom:112px;
+  width:74px; height:74px; transform:rotate(-8deg);
+  border:2px solid var(--accent); border-radius:3px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  color:var(--accent); opacity:.85; user-select:none;
+}
+.hero-grand .seal b{ font-family:var(--ff-display); font-size:23px; font-weight:700; letter-spacing:.04em; line-height:1 }
+.hero-grand .seal i{ font-family:var(--ff-mono); font-style:normal; font-size:8px; letter-spacing:.24em }
+.hero-grand .seal::after{
+  content:""; position:absolute; inset:4px; border:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius:2px;
+}
+@media (max-width:1180px){ .hero-grand .seal{display:none} }
+
+/* ---- scroll cue: a drop running down the line, to match the rain ---- */
+.hero-grand .scroll-cue{ display:none }
+.hero-grand .scroll-cue .bar{ position:relative; overflow:hidden }
+.hero-grand .scroll-cue .bar::after{
+  content:""; position:absolute; left:0; right:0; height:40%;
+  background:var(--accent); animation:cueFall 1.9s var(--ease) infinite;
+}
+@keyframes cueFall{ 0%{top:-45%} 100%{top:105%} }
+
+@media (max-width:900px){
+  .hero-grand__body{ max-width:100% }
+  .hero-grand .grandname{ font-size:clamp(2.6rem,13vw,5rem) }
+}
+@media (prefers-reduced-motion: reduce){
+  .hero-grand .scroll-cue .bar::after,
+  .hero-grand .wayfind .pip{ animation:none }
+}

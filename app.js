@@ -586,7 +586,8 @@ const CMDS={
   <span class="acc">net</span>        the 3D scene behind this page ( <span class="mut">net off</span> )
   <span class="acc">clear</span>      wipe the screen
 <span class="mut">scene verbs — each page runs a different one:</span>
-  <span class="acc">attack</span> <span class="mut">·</span> <span class="acc">harden</span>    home — flood a node, watch it hold
+  <span class="acc">rebuild</span> <span class="mut">·</span> <span class="acc">tiers</span>   home — the pagoda: raise it, or list its floors
+  <span class="acc">attack</span> <span class="mut">·</span> <span class="acc">harden</span>    the network mesh (other pages)
   <span class="acc">kubectl</span>          /work — get pods · rollout · drain · scale
   <span class="acc">rack</span>             /stack — status · <span class="mut">rack fail</span>
   <span class="acc">build</span>            /experience — push one through the pipeline
@@ -661,9 +662,21 @@ const CMDS={
     const g=scene3d("pipeline","/experience"); if(g) return g;
     return `build <span class="acc">#${window.NET3D.api.trigger()}</span> queued. <span class="mut">commit → build → test → scan → package → deploy.</span>`;
   },
+  rebuild(){
+    const g=scene3d("pagoda","the home page"); if(g) return g;
+    return `raising <span class="acc">${window.NET3D.api.rebuild()}</span> tiers. <span class="mut">from the foundation up, in four and a half seconds.</span>`;
+  },
+  tiers(){
+    const g=scene3d("pagoda","the home page"); if(g) return g;
+    return `<span class="acc">the pagoda — seven floors, seven destinations</span>
+`+
+           window.NET3D.api.list()+
+           `
+<span class="mut">hover a storey on the tower to name it; click to enter. or just use the nav like a normal person.</span>`;
+  },
 };
 const NO3D=`<span class="mut">no render context. WebGL is off, the viewport is narrow, or you asked for reduced motion — and I respect all three.</span>`;
-const SCENE_VERBS={ mesh:"attack · harden", cluster:"kubectl", rack:"rack", pipeline:"build" };
+const SCENE_VERBS={ pagoda:"rebuild · tiers", mesh:"attack · harden", cluster:"kubectl", rack:"rack", pipeline:"build" };
 /* returns an error string when the current page isn't running the scene a verb needs */
 function scene3d(name,where){
   const N=window.NET3D;
@@ -709,6 +722,6 @@ try{
   console.log("%c$ whoami","font-family:monospace;color:#8b909a");
   console.log("%c"+CONFIG.firstName+" "+CONFIG.lastName+" — "+CONFIG.role, s1);
   console.log("%cYou opened the console. Either you're a recruiter who codes or you're\nsimply nosy — both are, frankly, hireable traits.", s2);
-  console.log("%cThe site is hand-written. No framework, no tracker, no analytics.\nI don't actually know you're reading this. Prove me wrong: %c"+CONFIG.email, s2, s1);
+  console.log("%cThe site is hand-written. No bundler, no package manager, no build step,\nno tracker, no analytics. One dependency: Three.js, vendored locally for the\npagoda on the home page. Every other scene is a renderer I wrote by hand.\nI don't actually know you're reading this. Prove me wrong: %c"+CONFIG.email, s2, s1);
   console.log("%cPS — it was DNS. It's always DNS.", s2);
 }catch(e){}

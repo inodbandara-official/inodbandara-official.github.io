@@ -3,7 +3,8 @@
     "allow": [
       "Bash(curl -s -o /dev/null -w \"index:%{http_code} \" http://127.0.0.1:8899/)",
       "Bash(curl -s -o /dev/null -w \"net3d:%{http_code} \" http://127.0.0.1:8899/net3d.js)",
-      "Bash(curl -s -o /dev/null -w \"css:%{http_code}\\\\n\" http://127.0.0.1:8899/styles.css)"
+      "Bash(curl -s -o /dev/null -w \"css:%{http_code}\\\\n\" http://127.0.0.1:8899/styles.css)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

@@ -10,14 +10,21 @@
   renders any project from ?p=N. No, I will not tell you how long the CSS took.
   If you got this far, you already know we'd get along: */ sudo hire
 -->
+<script type="importmap">
+{ "imports": {
+    "three": "/vendor/three/three.module.js",
+    "three/addons/": "/vendor/three/jsm/"
+} }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="/styles.css" />
 </head>
-<body class="d3" data-scene="cluster" id="projectPage">
-<canvas id="net3d" aria-hidden="true"></canvas>
+<body data-hero="steles"class="d3" id="projectPage">
+<canvas id="hero3d"></canvas>
+<div class="hero-scrim" aria-hidden="true"></div>
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
@@ -141,6 +148,6 @@
 </div>
 
 <script src="/app.js"></script>
-<script src="/net3d.js"></script>
+<script type="module" src="/hero3d.js"></script>
 </body>
 </html>

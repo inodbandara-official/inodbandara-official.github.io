@@ -10,14 +10,21 @@
   honest, and mildly self-aware. If you reached it by typing the URL by hand:
   respect, but check your spelling. If I broke a link: that one's on me.
 -->
+<script type="importmap">
+{ "imports": {
+    "three": "/vendor/three/three.module.js",
+    "three/addons/": "/vendor/three/jsm/"
+} }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="/styles.css" />
 </head>
-<body class="d3" data-keep-title>
-<canvas id="net3d" aria-hidden="true"></canvas>
+<body data-hero="ruin"class="d3" data-keep-title>
+<canvas id="hero3d"></canvas>
+<div class="hero-scrim" aria-hidden="true"></div>
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
@@ -94,6 +101,6 @@ status: <span class="bad">404 Not Found</span>   cause: <span class="k">probably
 </div>
 
 <script src="/app.js"></script>
-<script src="/net3d.js"></script>
+<script type="module" src="/hero3d.js"></script>
 </body>
 </html>

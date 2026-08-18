@@ -10,14 +10,21 @@
   A contact form with a database would be one more thing to patch, and I have
   enough of those. Minimalism as a security posture. Also as a personality.
 -->
+<script type="importmap">
+{ "imports": {
+    "three": "/vendor/three/three.module.js",
+    "three/addons/": "/vendor/three/jsm/"
+} }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="/styles.css" />
 </head>
-<body class="d3" id="contactPage">
-<canvas id="net3d" aria-hidden="true"></canvas>
+<body data-hero="brazier"class="d3" id="contactPage">
+<canvas id="hero3d"></canvas>
+<div class="hero-scrim" aria-hidden="true"></div>
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
@@ -123,6 +130,6 @@
 </div>
 
 <script src="/app.js"></script>
-<script src="/net3d.js"></script>
+<script type="module" src="/hero3d.js"></script>
 </body>
 </html>
