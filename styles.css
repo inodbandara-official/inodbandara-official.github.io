@@ -1,25 +1,43 @@
 /* =============================================================================
-   SHARED DESIGN SYSTEM  —  loaded by index.html, about.html, contact.html
-   Edit tokens here once; every page inherits. Content lives in app.js (CONFIG).
+   SHARED DESIGN SYSTEM  —  loaded by every page, ahead of system.css
+   Edit tokens here once; every page inherits. Content lives in js/data/profile.js;
+   the spatial half of the design system is in system.css.
    ============================================================================= */
 
 :root{
-  --bg:#0a0b0d; --bg-1:#101216; --bg-2:#16181d;
-  --line:#22252c; --line-2:#2c303a;
-  --text:#e7e5df; --muted:#8b909a; --faint:#565b64;
-  --accent:#f5b841; --accent-ink:#0a0b0d; --accent-dim:rgba(245,184,65,.14);
+  /* --- surfaces: a deep blue-black room, not a grey one ------------------- */
+  --bg:#05070f; --bg-1:#080c17; --bg-2:#0d1322;
+  --line:#1a2338; --line-2:#26314c;
+  --text:#e9eaf0; --muted:#8d95ab; --faint:#565f78;
+
+  /* --- signature: amber belongs to the person and is spent sparingly ------ */
+  --accent:#f5b841; --accent-ink:#05070f; --accent-dim:rgba(245,184,65,.14);
+
+  /* --- system light: what the environment is lit with --------------------- */
+  --sig:#53d7f2;  --sig-dim:rgba(83,215,242,.11);   /* signal / data */
+  --vio:#7b6cf6;  --mag:#d8548c;  --turq:#35dfc0;   /* depth / rare accents */
+  --glow-sig:0 0 22px rgba(83,215,242,.28);
+  --glow-acc:0 0 26px rgba(245,184,65,.24);
+
   --maxw:1280px;
   --gutter: clamp(22px, 6vw, 42px);   /* notch-safe side padding */
   --ff-display:"Space Grotesk",system-ui,sans-serif;
-  --ff-body:"Inter",system-ui,sans-serif;
+  --ff-body:"Space Grotesk",system-ui,sans-serif;
   --ff-mono:"JetBrains Mono",ui-monospace,monospace;
   --ease:cubic-bezier(.22,.61,.36,1);
+
+  /* --- motion language: four speeds, named once -------------------------- */
+  --t-micro:200ms; --t-ui:400ms; --t-env:1100ms; --t-atmos:7s;
 }
 html[data-theme="light"]{
-  --bg:#eceae3; --bg-1:#f4f2ec; --bg-2:#e3e1d9;
-  --line:#d6d3ca; --line-2:#c7c4ba;
-  --text:#17181b; --muted:#5b5f68; --faint:#8d9099;
-  --accent:#a86a00; --accent-ink:#fff; --accent-dim:rgba(168,106,0,.12);
+  --bg:#eceae3; --bg-1:#f5f3ed; --bg-2:#e2e0d8;
+  --line:#d5d2c9; --line-2:#c5c2b8;
+  --text:#14161c; --muted:#565c69; --faint:#878c98;
+  --accent:#a8690a; --accent-ink:#fff; --accent-dim:rgba(168,105,10,.12);
+  --sig:#0b7ea0; --sig-dim:rgba(11,126,160,.10);
+  --vio:#5b49c9; --mag:#a83567; --turq:#0f8f7b;
+  --glow-sig:0 0 22px rgba(11,126,160,.18);
+  --glow-acc:0 0 26px rgba(168,105,10,.16);
 }
 
 *{margin:0;padding:0;box-sizing:border-box}

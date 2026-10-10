@@ -11,9 +11,10 @@
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="/styles.css" />
+<link rel="stylesheet" href="/system.css" />
 <style>
   /* =========================================================================
      MORPHISM EXPERIMENT — page-scoped.
@@ -173,6 +174,8 @@
 </head>
 <body id="morphismPage" data-keep-title>
 
+<a class="skip" href="#main" data-skip data-no-transition>Skip to content</a>
+
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
 
@@ -208,7 +211,7 @@
 <div class="hud hud-bl"><span class="k">CRSR</span> <span class="v" id="crsr">0.000 · 0.000</span></div>
 <div class="hud hud-br"><span class="k">SCRL</span> <span class="v" id="scrl">0.00</span> <span class="k">%</span></div>
 
-<main>
+<main id="main">
 <header class="page-hero wrap">
   <a class="case-back" href="/lab" data-cursor>← lab / experiments</a>
   <div class="eyebrow reveal"><span class="n">07</span> / Lab <span class="line"></span> <span class="tag">EXPERIMENT · LIVE</span></div>
@@ -342,9 +345,9 @@
   <div class="term__input"><span class="pr">➜ ~</span><input id="termInput" autocomplete="off" spellcheck="false" aria-label="terminal command input" /></div>
 </div>
 
-<script src="/app.js"></script>
+<script type="module" src="/js/boot.js"></script>
 <script>
-/* morpher — page-specific, runs after app.js. Independent of CONFIG. */
+/* morpher — page-specific, runs after the site bundle. Independent of CONFIG. */
 (function(){
   var caps={
     skeuo:"<b>Skeuomorphism.</b> Rich textures, layered gradients and glossy highlights make the card look like a physical object you could press.",

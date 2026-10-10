@@ -3,20 +3,35 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Contact — Systems &amp; Security Engineer</title>
+<title>Contact — Inod Bandara</title>
 <meta name="description" content="Get in touch — hiring, infrastructure problems, or comparing notes on hardening and homelabs." />
 <!--
   This form has no backend. It opens your mail client and gets out of the way.
   A contact form with a database would be one more thing to patch, and I have
   enough of those. Minimalism as a security posture. Also as a personality.
 -->
+<meta name="theme-color" content="#05070f" />
+<link rel="canonical" href="https://inodbandara.lk/contact" />
+<meta property="og:url" content="https://inodbandara.lk/contact" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Inod Bandara" />
+<meta property="og:title" content="Contact — Inod Bandara" />
+<meta property="og:description" content="Get in touch — hiring, infrastructure problems, or comparing notes on hardening and homelabs." />
+<meta property="og:image" content="https://inodbandara.lk/me.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Contact — Inod Bandara" />
+<meta name="twitter:description" content="Get in touch — hiring, infrastructure problems, or comparing notes on hardening and homelabs." />
+<meta name="twitter:image" content="https://inodbandara.lk/me.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="/styles.css" />
+<link rel="stylesheet" href="/system.css" />
 </head>
-<body id="contactPage">
+<body id="contactPage" data-keep-title>
+
+<a class="skip" href="#main" data-skip data-no-transition>Skip to content</a>
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
@@ -53,7 +68,7 @@
 <div class="hud hud-bl"><span class="k">CRSR</span> <span class="v" id="crsr">0.000 · 0.000</span></div>
 <div class="hud hud-br"><span class="k">SCRL</span> <span class="v" id="scrl">0.00</span> <span class="k">%</span></div>
 
-<main>
+<main id="main">
 
 <header class="contact-hero wrap contact">
   <div class="eyebrow reveal"><span class="n">06</span> / Contact <span class="line"></span> <span class="tag">— HARD PROBLEMS WELCOME, VAGUE ONES TOLERATED</span></div>
@@ -120,6 +135,6 @@
   <div class="term__input"><span class="pr">➜ ~</span><input id="termInput" autocomplete="off" spellcheck="false" aria-label="terminal command input" /></div>
 </div>
 
-<script src="/app.js"></script>
+<script type="module" src="/js/boot.js"></script>
 </body>
 </html>

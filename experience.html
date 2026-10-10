@@ -3,19 +3,34 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Experience — how I ended up here</title>
+<title>Experience — how I ended up here · Inod Bandara</title>
 <meta name="description" content="Experience — the career and the classroom in one timeline: roles, degrees, and the occasional 3am lesson." />
 <!--
   A timeline is just a stack trace for a career. This one has fewer red lines
   than my first month of Kubernetes, which I choose to read as growth.
 -->
+<meta name="theme-color" content="#05070f" />
+<link rel="canonical" href="https://inodbandara.lk/experience" />
+<meta property="og:url" content="https://inodbandara.lk/experience" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Inod Bandara" />
+<meta property="og:title" content="Experience — how I ended up here · Inod Bandara" />
+<meta property="og:description" content="Experience — the career and the classroom in one timeline: roles, degrees, and the occasional 3am lesson." />
+<meta property="og:image" content="https://inodbandara.lk/me.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Experience — how I ended up here · Inod Bandara" />
+<meta name="twitter:description" content="Experience — the career and the classroom in one timeline: roles, degrees, and the occasional 3am lesson." />
+<meta name="twitter:image" content="https://inodbandara.lk/me.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="/styles.css" />
+<link rel="stylesheet" href="/system.css" />
 </head>
 <body id="experiencePage" data-keep-title>
+
+<a class="skip" href="#main" data-skip data-no-transition>Skip to content</a>
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
@@ -52,7 +67,7 @@
 <div class="hud hud-bl"><span class="k">CRSR</span> <span class="v" id="crsr">0.000 · 0.000</span></div>
 <div class="hud hud-br"><span class="k">SCRL</span> <span class="v" id="scrl">0.00</span> <span class="k">%</span></div>
 
-<main>
+<main id="main">
 <header class="page-hero wrap">
   <div class="eyebrow reveal"><span class="n">04</span> / Experience <span class="line"></span> <span class="tag">— HOW I ENDED UP HERE</span></div>
   <h1 style="font-family:var(--ff-display);font-weight:600;font-size:clamp(2.6rem,9vw,7rem);letter-spacing:-.03em;line-height:.9">Experience<span style="color:var(--accent)">.</span></h1>
@@ -91,6 +106,6 @@
   <div class="term__input"><span class="pr">➜ ~</span><input id="termInput" autocomplete="off" spellcheck="false" aria-label="terminal command input" /></div>
 </div>
 
-<script src="/app.js"></script>
+<script type="module" src="/js/boot.js"></script>
 </body>
 </html>
