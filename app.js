@@ -1,12 +1,6 @@
-/* fresh gradient palette on every page load: pick a base hue at least 60deg
-   away from the previous one (styles.css derives every colour from --h) */
-(()=>{
-  let last=NaN; try{ last=parseFloat(localStorage.getItem("hue")); }catch(e){}
-  const far=h=>isNaN(last)||Math.min(Math.abs(h-last),360-Math.abs(h-last))>=60;
-  let h; do{ h=Math.floor(Math.random()*360); }while(!far(h));
-  document.documentElement.style.setProperty("--h",h);
-  try{ localStorage.setItem("hue",h); }catch(e){}
-})();
+/* run fn once the first-visit intro (boot.js + bottom of this file) has finished */
+const afterIntro=fn=>document.documentElement.classList.contains("intro")
+  ? addEventListener("intro:done",fn,{once:true}) : fn();
 
 /* =============================================================================
    ██  CONFIG  —  THE ONLY PLACE YOU NEED TO EDIT.
@@ -475,7 +469,7 @@ window.addEventListener("scroll",onScroll,{passive:true}); onScroll();
 
 /* reveal observer (run AFTER renders so injected .reveal nodes are caught) */
 const io=new IntersectionObserver(es=>{es.forEach(e=>{ if(e.isIntersecting){e.target.classList.add("in"); io.unobserve(e.target);} })},{threshold:.12});
-$$(".reveal").forEach(el=>io.observe(el));
+afterIntro(()=>$$(".reveal").forEach(el=>io.observe(el)));
 
 /* theme */
 const root=document.documentElement;
@@ -532,9 +526,11 @@ if(matchMedia("(hover:hover) and (pointer:fine)").matches){
     /* gradient cursor: springy ring, elastic comet tail, spark particles, click burst
        and idle orbit. Colours glide through the page palette; ring borrows the hover-tint colour. */
     const still=matchMedia("(prefers-reduced-motion:reduce)").matches;
-    /* resolve the hsl() colour tokens to rgb via a hidden probe element */
+    /* resolve the colour tokens to rgb via a hidden probe element */
     const probe=document.createElement("i"); probe.style.display="none"; document.body.appendChild(probe);
-    const rgbOf=n=>{ probe.style.color=`var(${n})`; return (getComputedStyle(probe).color.match(/[\d.]+/g)||[167,123,255]).slice(0,3).map(Number); };
+    const px=document.createElement("canvas").getContext("2d",{willReadFrequently:true});
+    const rgbOf=n=>{ probe.style.color=`var(${n})`; px.clearRect(0,0,1,1); px.fillStyle="#a77bff"; px.fillStyle=getComputedStyle(probe).color; px.fillRect(0,0,1,1);
+      return [...px.getImageData(0,0,1,1).data].slice(0,3); };   /* canvas converts oklch/hsl/anything to rgb */
     let stops=[];
     const readStops=()=>{ stops=["--c-cyan","--c-blue","--c-violet","--c-pink"].map(rgbOf); };
     readStops(); new MutationObserver(readStops).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
@@ -788,5 +784,125 @@ try{
     })(t0);
   };
   const io=new IntersectionObserver(es=>es.forEach(en=>{ if(en.isIntersecting){ io.unobserve(en.target); scramble(en.target); } }),{threshold:.4});
-  document.querySelectorAll("main :is(h1,h2,h3)").forEach(h=>io.observe(h));
+  afterIntro(()=>document.querySelectorAll("main :is(h1,h2,h3)").forEach(h=>io.observe(h)));
 })();
+
+/* =============================================================================
+   MOTION LAYER — tilt cards, staggered reveals, scroll-progress frame,
+   page transitions, first-visit intro
+   ============================================================================= */
+const FINE=matchMedia("(hover:hover) and (pointer:fine)").matches;
+const STILL=matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+/* 3D tilt — cards lean toward the cursor; the spotlight glow doubles as the shine */
+(()=>{
+  if(!FINE||STILL) return;
+  const SEL="main :is(.tech,.stat,.principle,.dcell,.lesson,.fit,.stack-col,.tldr,.portrait)";
+  let cur=null;
+  const reset=el=>{ el.style.transform=""; el.classList.remove("tilting"); };
+  document.addEventListener("mousemove",e=>{
+    const el=e.target.closest&&e.target.closest(SEL);
+    if(cur&&cur!==el){ reset(cur); cur=null; }
+    if(!el) return;
+    cur=el; el.classList.add("tilting");
+    const r=el.getBoundingClientRect(), x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+    const max=r.width>420?4:9;
+    el.style.transform=`perspective(900px) rotateX(${(-y*max).toFixed(2)}deg) rotateY(${(x*max).toFixed(2)}deg) translateY(-4px)`;
+  },{passive:true});
+  document.addEventListener("mouseleave",()=>{ if(cur){ reset(cur); cur=null; } });
+})();
+
+/* staggered reveals — individual cards / rows rise in one after another */
+(()=>{
+  if(STILL||!("IntersectionObserver" in window)) return;
+  const SEL="main :is(.project,.stat,.principle,.tech,.dcell,.chip,.lesson,.stack-col,.fit,.comp li,.tl > *,.edu > *,.case-section,.stack-col li,.info-row)";
+  const els=[...document.querySelectorAll(SEL)].filter(el=>!el.classList.contains("reveal"));
+  const set=new Set(els);
+  els.forEach(el=>{
+    const sib=[...el.parentElement.children].filter(c=>set.has(c));
+    el.style.setProperty("--rv-d",(Math.min(sib.indexOf(el),10)*70)+"ms");
+    el.classList.add("rv");
+  });
+  const io=new IntersectionObserver(es=>es.forEach(en=>{
+    if(!en.isIntersecting) return;
+    const el=en.target; io.unobserve(el); el.classList.add("in");
+    setTimeout(()=>el.classList.add("rv-done"),1400);   /* drop the delay so hover effects react instantly */
+  }),{threshold:.12, rootMargin:"0px 0px -6% 0px"});
+  afterIntro(()=>els.forEach(el=>io.observe(el)));
+})();
+
+/* scroll progress — a gradient line traces the page border clockwise as you scroll */
+(()=>{
+  const ns="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(ns,"svg"); svg.setAttribute("class","frame"); svg.setAttribute("aria-hidden","true");
+  svg.innerHTML=`<defs><linearGradient id="frameGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" style="stop-color:var(--c-cyan)"/><stop offset=".5" style="stop-color:var(--c-violet)"/><stop offset="1" style="stop-color:var(--c-pink)"/>
+    </linearGradient></defs><rect class="frame-track"/><rect class="frame-fill" pathLength="1"/>`;
+  document.body.appendChild(svg);
+  const rects=svg.querySelectorAll("rect"), fill=rects[1];
+  const size=()=>{ const w=document.documentElement.clientWidth, h=document.documentElement.clientHeight, s=1.5;
+    svg.setAttribute("viewBox",`0 0 ${w} ${h}`);
+    rects.forEach(r=>{ r.setAttribute("x",s); r.setAttribute("y",s); r.setAttribute("width",Math.max(w-s*2,0)); r.setAttribute("height",Math.max(h-s*2,0)); }); };
+  const prog=()=>{ const max=document.documentElement.scrollHeight-innerHeight;
+    const p=max>0?Math.min(Math.max(scrollY/max,0),1):0;
+    fill.style.strokeDasharray=`${p} 1`; };
+  size(); prog();
+  addEventListener("resize",()=>{ size(); prog(); });
+  addEventListener("scroll",prog,{passive:true});
+})();
+
+/* page transitions — layered gradient wipe between internal pages */
+(()=>{
+  const d=document.documentElement;
+  if(d.classList.contains("pt-in")) setTimeout(()=>d.classList.remove("pt-in"),1000);
+  addEventListener("pageshow",e=>{ if(e.persisted) d.classList.remove("pt-leave"); });
+  if(STILL) return;
+  document.addEventListener("click",e=>{
+    const a=e.target.closest&&e.target.closest("a[href]");
+    if(!a||e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey) return;
+    if((a.target&&a.target!=="_self")||a.hasAttribute("download")) return;
+    const url=new URL(a.href,location.href);
+    if(url.origin!==location.origin||!/^https?:$/.test(url.protocol)) return;
+    if(url.pathname===location.pathname&&url.search===location.search) return;   /* same page / hash links */
+    e.preventDefault();
+    try{ sessionStorage.setItem("pt","1"); }catch(_){}
+    d.classList.add("pt-leave");
+    setTimeout(()=>{ location.href=url.href; },640);
+  });
+})();
+
+/* first-visit intro — name decodes, counter boots, gradient sweeps, curtain lifts */
+(()=>{
+  const d=document.documentElement;
+  if(!d.classList.contains("intro")) return;
+  try{ sessionStorage.setItem("introSeen","1"); }catch(e){}
+  const name=(CONFIG.firstName+" "+CONFIG.lastName).toUpperCase();
+  const el=document.createElement("div"); el.className="intro-screen"; el.setAttribute("aria-hidden","true");
+  el.innerHTML=`<div class="intro-inner">
+      <div class="intro-k"><span>SYS://BOOT</span><span class="intro-n">000</span></div>
+      <div class="intro-name"></div>
+      <div class="intro-bar"><i></i></div>
+      <div class="intro-sub">${CONFIG.role}</div>
+    </div>`;
+  document.body.appendChild(el);
+  const nameEl=el.querySelector(".intro-name"), nEl=el.querySelector(".intro-n"), bar=el.querySelector(".intro-bar i");
+  const G="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&/<>_*";
+  const DUR=4000, t0=performance.now(); let ended=false;
+  const finish=()=>{
+    if(ended) return; ended=true;
+    nameEl.textContent=name; nEl.textContent="100"; bar.style.transform="scaleX(1)";
+    el.classList.add("done"); d.classList.remove("intro");
+    dispatchEvent(new Event("intro:done"));
+    setTimeout(()=>el.remove(),1400);
+  };
+  (function frame(now){
+    if(ended) return;
+    const p=Math.min((now-t0)/DUR,1), e=1-Math.pow(1-p,3), k=Math.floor(e*name.length*1.15);
+    nameEl.textContent=[...name].map((c,i)=>c===" "||i<k?c:G[Math.random()*G.length|0]).join("");
+    nEl.textContent=String(Math.round(e*100)).padStart(3,"0");
+    bar.style.transform=`scaleX(${e})`;
+    if(p<1) requestAnimationFrame(frame); else setTimeout(finish,900);
+  })(t0);
+  el.addEventListener("click",finish); addEventListener("keydown",finish,{once:true});
+})();
+
