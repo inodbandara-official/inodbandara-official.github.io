@@ -21,7 +21,7 @@ const CONFIG = {
   email:     "officialinod@gmail.com",
   resumeUrl: "resume.pdf",
   socials: [
-    { label: "GitHub",   url: "https://github.com/indobandara-official" },
+    { label: "GitHub",   url: "https://github.com/inodbandara-official" },
     { label: "LinkedIn", url: "https://www.linkedin.com/in/inod-bandara-555722228/" },
     { label: "Location", url: "https://www.google.com/maps/place/Fort+America+Pentagon/@38.8707289,-77.0555936,19z" },
   ],
