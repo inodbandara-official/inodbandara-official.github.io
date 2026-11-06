@@ -620,3 +620,18 @@ try{
   console.log("%cThe site is hand-written. No framework, no tracker, no analytics.\nI don't actually know you're reading this. Prove me wrong: %c"+CONFIG.email, s2, s1);
   console.log("%cPS — it was DNS. It's always DNS.", s2);
 }catch(e){}
+
+/* hover tint — each text line / card takes a fresh spectrum colour while the cursor is on it */
+(()=>{
+  if(!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
+  const TARGETS="main :is(p,li,h1,h2,h3,h4,h5,h6,blockquote,dt,dd,td,th,figcaption,.project,.stat,.chip,.dcell,.tech,.principle,.stack-col,.lesson,.tldr,.diag,.fit,.tl > *,hr)";
+  const HUES=["red","orange","yellow","green","cyan","blue","violet","pink"];
+  let last=-1;
+  document.addEventListener("mouseover",e=>{
+    const el=e.target.closest(TARGETS);
+    if(!el || el.closest(".term,.overlay,.nav") || el.contains(e.relatedTarget)) return;
+    let i; do{ i=Math.floor(Math.random()*HUES.length); }while(i===last);
+    last=i;
+    el.style.setProperty("--hc","var(--c-"+HUES[i]+")");
+  });
+})();
