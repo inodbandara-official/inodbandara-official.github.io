@@ -648,7 +648,7 @@ main hr{transition:border-color .35s var(--ease),background .35s var(--ease)}
 }
 
 /* scramble-in headings (app.js) */
-.scrambling{font-variant-ligatures:none}
+.scrambling{font-variant-ligatures:none; overflow:visible}
 
 /* gradient cursor (driven by app.js) */
 .cursor,.cursor-ring{mix-blend-mode:normal}
@@ -719,3 +719,23 @@ html.intro body{visibility:hidden; overflow:hidden}
   html::before,html::after{display:none}
   main .rv{opacity:1; translate:none}
 }
+
+/* glass-lens cursor (app.js) — overrides the earlier cursor rules */
+html.has-cursor,html.has-cursor *{cursor:none !important}
+.cursor{width:5px; height:5px; transition:opacity .2s, background .3s}
+.cursor-ring{
+  width:36px; height:36px; border:1px solid color-mix(in srgb,var(--ring-c,var(--accent)) 70%,transparent);
+  background:rgba(255,255,255,.035);
+  -webkit-backdrop-filter:blur(1.5px) saturate(1.8) brightness(1.12); backdrop-filter:blur(1.5px) saturate(1.8) brightness(1.12);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.35), inset 0 -6px 12px rgba(0,0,0,.18),
+             0 6px 18px -6px rgba(0,0,0,.5), 0 0 18px -4px var(--ring-c,var(--accent));
+  transition:opacity .3s, background-color .3s, border-color .3s, box-shadow .3s;
+  will-change:transform,width,height;
+}
+.cursor-ring.is-wrap{background:color-mix(in srgb,var(--ring-c,var(--accent)) 9%,transparent);
+  -webkit-backdrop-filter:saturate(1.4) brightness(1.15); backdrop-filter:saturate(1.4) brightness(1.15)}
+.cursor-ring.is-text{background:var(--ring-c,var(--accent)); border-color:transparent; -webkit-backdrop-filter:none; backdrop-filter:none;
+  box-shadow:0 0 10px var(--ring-c,var(--accent))}
+html[data-theme="light"] .cursor-ring{background:rgba(255,255,255,.28);
+  box-shadow:inset 0 1px 1px #fff, inset 0 -6px 12px rgba(0,0,0,.06), 0 6px 18px -8px rgba(30,20,60,.35), 0 0 14px -6px var(--ring-c,var(--accent))}
+html[data-theme="light"] .cursor-ring.is-text{background:var(--ring-c,var(--accent))}

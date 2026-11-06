@@ -513,110 +513,137 @@ $$("[data-copy-email]").forEach(b=>{
   });
 });
 
-/* custom cursor */
+/* custom cursor — glass lens + ink trail
+   ring  : a small glass lens (backdrop blur/saturate) on a critically-damped spring.
+           Over buttons/links it morphs to hug the element; over text fields it
+           becomes a caret; over large clickable areas it swells.
+   dot   : precise pointer, hides while the lens is wrapped around something.
+   ink   : soft smoke wisps shed by movement that curl, spread and dissolve.
+   click : the lens squeezes and releases, and a slow ring of ink breathes out. */
 if(matchMedia("(hover:hover) and (pointer:fine)").matches){
   const dot=$("#cursor"), ring=$("#cursorRing");
   if(dot&&ring){
-    let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
-    addEventListener("mousemove",e=>{
-      mx=e.clientX; my=e.clientY;
-      dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
-      const c=$("#crsr"); if(c) c.textContent=(mx/innerWidth).toFixed(3)+" · "+(my/innerHeight).toFixed(3);
-    });
-    /* gradient cursor: springy ring, elastic comet tail, spark particles, click burst
-       and idle orbit. Colours glide through the page palette; ring borrows the hover-tint colour. */
-    const still=matchMedia("(prefers-reduced-motion:reduce)").matches;
-    /* resolve the colour tokens to rgb via a hidden probe element */
+    const d=document.documentElement, still=matchMedia("(prefers-reduced-motion:reduce)").matches;
+    d.classList.add("has-cursor");
+    let mx=innerWidth/2, my=innerHeight/2, seen=false;
+
+    /* palette -> rgb (canvas converts oklch/hsl/anything) */
     const probe=document.createElement("i"); probe.style.display="none"; document.body.appendChild(probe);
     const px=document.createElement("canvas").getContext("2d",{willReadFrequently:true});
     const rgbOf=n=>{ probe.style.color=`var(${n})`; px.clearRect(0,0,1,1); px.fillStyle="#a77bff"; px.fillStyle=getComputedStyle(probe).color; px.fillRect(0,0,1,1);
-      return [...px.getImageData(0,0,1,1).data].slice(0,3); };   /* canvas converts oklch/hsl/anything to rgb */
+      return [...px.getImageData(0,0,1,1).data].slice(0,3); };
     let stops=[];
     const readStops=()=>{ stops=["--c-cyan","--c-blue","--c-violet","--c-pink"].map(rgbOf); };
-    readStops(); new MutationObserver(readStops).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+    readStops(); new MutationObserver(readStops).observe(d,{attributes:true,attributeFilter:["data-theme"]});
     const mix=t=>{ t=((t%1)+1)%1; const f=t*stops.length, i=Math.floor(f), k=f-i, A=stops[i], B=stops[(i+1)%stops.length];
       return A.map((v,j)=>Math.round(v+(B[j]-v)*k)); };
+    const dark=()=>d.getAttribute("data-theme")!=="light";
+
+    /* spring helper: critically-damped-ish, frame-rate independent */
+    const spring=(s,target,k,damp,dt)=>{ s.v+=(target-s.x)*k*dt; s.v*=Math.pow(damp,dt); s.x+=s.v*dt; };
+    const S=v=>({x:v,v:0});
+    const P={x:S(mx),y:S(my),w:S(36),h:S(36),r:S(18)};
+
+    /* what the cursor is over */
+    const MAG="a,button,.btn,[data-cursor],.copy-btn,.toggle,.menu-btn,label[for]";
+    const TEXT="input:not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]),textarea,[contenteditable=true]";
+    let target=null, mode="free", tint=null;
+    const pick=el=>{
+      if(!el||!el.closest) return ["free",null];
+      if(el.closest(TEXT)) return ["text",el.closest(TEXT)];
+      const m=el.closest(MAG);
+      if(m){ const r=m.getBoundingClientRect(); return (r.width<440&&r.height<120)?["wrap",m]:["big",m]; }
+      if(el.closest(".project__head,.portrait,.tech,.stat,.principle")) return ["big",el];
+      return ["free",null];
+    };
+    document.addEventListener("mouseover",e=>{
+      [mode,target]=pick(e.target);
+      const h=e.target.closest&&e.target.closest("[style*='--hc']");
+      tint=h? getComputedStyle(h).getPropertyValue("--hc").trim()||null : null;
+    });
+    document.addEventListener("mouseleave",()=>{ ring.style.opacity=dot.style.opacity="0"; seen=false; });
+    addEventListener("mousemove",e=>{
+      mx=e.clientX; my=e.clientY;
+      if(!seen){ seen=true; P.x.x=mx; P.y.x=my; ring.style.opacity=dot.style.opacity=""; }
+      const c=$("#crsr"); if(c) c.textContent=(mx/innerWidth).toFixed(3)+" · "+(my/innerHeight).toFixed(3);
+    },{passive:true});
+    /* content can move under a still mouse (scroll, reveal, layout) — re-check what is underneath */
+    const repick=()=>{ if(seen) [mode,target]=pick(document.elementFromPoint(mx,my)); };
+    addEventListener("scroll",repick,{passive:true});
+
+    /* ink layer */
     const cv=document.createElement("canvas"); cv.className="cursor-trail"; document.body.appendChild(cv);
     const cx=cv.getContext("2d");
-    const fit=()=>{ const d=Math.min(devicePixelRatio||1,2); cv.width=innerWidth*d; cv.height=innerHeight*d; cx.setTransform(d,0,0,d,0,0); };
+    const fit=()=>{ const q=Math.min(devicePixelRatio||1,2); cv.width=innerWidth*q; cv.height=innerHeight*q; cx.setTransform(q,0,0,q,0,0); };
     fit(); addEventListener("resize",fit);
-    const dark=()=>document.documentElement.getAttribute("data-theme")!=="light";
-    const rgba=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+    const ink=[]; let phase=0, lx=mx, ly=my, press=0, t=0;
+    const puff=(x,y,vx,vy,size,life)=>{ if(ink.length<110) ink.push({x,y,vx,vy,s:size,life,max:life,c:phase+Math.random()*.25,seed:Math.random()*100}); };
 
-    /* physics state:
-       ring  — spring with overshoot (wobbles when it lands)
-       tail  — chain of springy blobs, each chasing the one ahead (elastic comet)
-       sparks — particles flung off by fast moves and clicks; they swirl, drift and fade
-       orbit — when the mouse rests, three motes circle the cursor */
-    let vx=0, vy=0, phase=0, tint=null, lastMove=performance.now(), pmx=mx, pmy=my, orbitA=0, orbitT=0;
-    const TAIL=16, tail=Array.from({length:TAIL},()=>({x:mx,y:my,vx:0,vy:0}));
-    const sparks=[];
-    const spawn=(x,y,dx,dy,life,size)=>{ if(sparks.length<160) sparks.push({x,y,vx:dx,vy:dy,life,max:life,size,spin:(Math.random()-.5)*.3,c:phase+Math.random()*.5}); };
-
-    document.addEventListener("mouseover",e=>{
-      const el=e.target.closest("[style*='--hc']");
-      tint=el? getComputedStyle(el).getPropertyValue("--hc").trim()||null : null;
-    });
-    addEventListener("mousemove",()=>{ lastMove=performance.now(); });
     addEventListener("mousedown",e=>{
+      press=1;
       if(still) return;
-      for(let i=0;i<26;i++){ const t=Math.PI*2*i/26+Math.random()*.2, v=2.5+Math.random()*4.5;
-        spawn(e.clientX,e.clientY,Math.cos(t)*v,Math.sin(t)*v,40+Math.random()*25,2+Math.random()*2.5); }
-      ring.animate([{scale:"1"},{scale:".55"},{scale:"1.25"},{scale:"1"}],{duration:520,easing:"cubic-bezier(.3,1.6,.5,1)"});
+      for(let i=0;i<14;i++){ const a=i/14*Math.PI*2; puff(e.clientX,e.clientY,Math.cos(a)*1.4,Math.sin(a)*1.4,8,70); }
     });
 
+    let last=performance.now();
     (function loop(now){
-      now=now||performance.now();
-      /* ring spring */
-      vx=(vx+(mx-rx)*.14)*.72; vy=(vy+(my-ry)*.14)*.72; rx+=vx; ry+=vy;
-      const sp=Math.min(Math.hypot(vx,vy)/28,.65), ang=Math.atan2(vy,vx)*180/Math.PI;
-      phase+=.0012;
-      const col=tint||`rgb(${mix(phase)})`;
-      ring.style.borderColor=col; dot.style.background=col;
-      ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%) rotate(${ang}deg) scale(${1+sp},${1-sp*.45})`;
+      const dt=Math.min((now-last)/16.667,3); last=now; t+=dt; phase+=.0009*dt;
 
+      /* targets for the lens */
+      let tx=mx, ty=my, tw=36, th=36, tr=18;
+      if((mode==="wrap"||mode==="big")&&target){ const r=target.getBoundingClientRect();
+        if(!target.isConnected||mx<r.left-12||mx>r.right+12||my<r.top-12||my>r.bottom+12) repick(); }
+      if(mode==="wrap"&&target){ const r=target.getBoundingClientRect(), pad=7;
+        const pull=.12;   /* lens drifts a little toward the pointer while wrapped: feels magnetic, not stuck */
+        tx=r.left+r.width/2+(mx-(r.left+r.width/2))*pull; ty=r.top+r.height/2+(my-(r.top+r.height/2))*pull;
+        tw=r.width+pad*2; th=r.height+pad*2;
+        tr=Math.min(th/2, parseFloat(getComputedStyle(target).borderRadius)+pad||10); }
+      else if(mode==="text"){ tw=3; th=26; tr=2; }
+      else if(mode==="big"){ tw=th=74; tr=37; }
+      press*=Math.pow(.86,dt);
+      const sq=1-press*.28;
+
+      spring(P.x,tx,.32,.62,dt); spring(P.y,ty,.32,.62,dt);
+      spring(P.w,tw*sq,.24,.6,dt); spring(P.h,th*sq,.24,.6,dt); spring(P.r,tr,.24,.6,dt);
+
+      /* subtle squash along travel when free — reads as a liquid lens, not a stretched ellipse */
+      const vx=P.x.v, vy=P.y.v, speed=Math.hypot(vx,vy);
+      const st=mode==="free"?Math.min(speed/40,.22):0, ang=Math.atan2(vy,vx)*180/Math.PI;
+      const breathe=mode==="free"&&speed<.3?1+Math.sin(t*.05)*.035:1;
+      const w=Math.max(P.w.x,2), h=Math.max(P.h.x,2);
+      ring.style.width=w+"px"; ring.style.height=h+"px"; ring.style.borderRadius=Math.max(P.r.x,1)+"px";
+      ring.style.transform=`translate(${P.x.x-w/2}px,${P.y.x-h/2}px) rotate(${st?ang:0}deg) scale(${(1+st)*breathe},${(1-st*.6)*breathe})`;
+      const col=tint||`rgb(${mix(phase)})`;
+      ring.style.setProperty("--ring-c",col);
+      ring.classList.toggle("is-wrap",mode==="wrap"); ring.classList.toggle("is-text",mode==="text");
+      dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
+      dot.style.opacity=(mode==="wrap"||mode==="text")?"0":"";
+      dot.style.background=col;
+
+      /* ink */
       cx.clearRect(0,0,innerWidth,innerHeight);
       if(!still){
-        cx.globalCompositeOperation=dark()?"lighter":"source-over";
-        const speed=Math.hypot(mx-pmx,my-pmy); pmx=mx; pmy=my;
-
-        /* sparks flung off fast moves, thrown sideways from the direction of travel */
-        if(speed>6){ const n=Math.min(4,speed/10|0)+1;
-          for(let i=0;i<n;i++){ const side=Math.random()<.5?-1:1, nx=-(my-tail[0].y), ny=(mx-tail[0].x), L=Math.hypot(nx,ny)||1;
-            spawn(mx,my,(nx/L)*side*(1+Math.random()*1.8)-(vx*.08),(ny/L)*side*(1+Math.random()*1.8)-(vy*.08),26+Math.random()*24,1+Math.random()*2.2); } }
-
-        /* elastic tail: each blob springs toward the one ahead */
-        let tx=mx, ty=my;
-        for(let i=0;i<TAIL;i++){ const b=tail[i], k=.34-i*.012, d=.62;
-          b.vx=(b.vx+(tx-b.x)*k)*d; b.vy=(b.vy+(ty-b.y)*k)*d; b.x+=b.vx; b.y+=b.vy; tx=b.x; ty=b.y; }
-        for(let i=TAIL-1;i>=0;i--){ const b=tail[i], f=1-i/TAIL;
-          const r=1.2+f*f*7*(.35+Math.min(speed/18,1));
-          const c=mix(phase+.3*(i/TAIL));
-          const g=cx.createRadialGradient(b.x,b.y,0,b.x,b.y,r*2.2);
-          g.addColorStop(0,rgba(c,.55*f)); g.addColorStop(1,rgba(c,0));
-          cx.fillStyle=g; cx.beginPath(); cx.arc(b.x,b.y,r*2.2,0,Math.PI*2); cx.fill(); }
-
-        /* sparks: drag, gentle swirl, slight float upward, fade + shrink */
-        for(let i=sparks.length-1;i>=0;i--){ const p=sparks[i];
-          const cs=Math.cos(p.spin*.12), sn=Math.sin(p.spin*.12);
-          [p.vx,p.vy]=[(p.vx*cs-p.vy*sn)*.94,(p.vx*sn+p.vy*cs)*.94-.035];
-          p.x+=p.vx; p.y+=p.vy; p.life--;
-          if(p.life<=0){ sparks.splice(i,1); continue; }
-          const t=p.life/p.max, c=mix(p.c);
-          cx.fillStyle=rgba(c,.85*t); cx.beginPath(); cx.arc(p.x,p.y,p.size*(.4+.6*t),0,Math.PI*2); cx.fill(); }
-
-        /* idle orbit: motes fade in after the mouse rests */
-        const idle=now-lastMove>650;
-        orbitT+=((idle?1:0)-orbitT)*.06; orbitA+=.035;
-        if(orbitT>.02) for(let i=0;i<3;i++){ const a=orbitA+i*Math.PI*2/3, R=26+Math.sin(orbitA*2+i)*5;
-          const c=mix(phase+i*.25);
-          cx.fillStyle=rgba(c,.9*orbitT); cx.beginPath(); cx.arc(rx+Math.cos(a)*R,ry+Math.sin(a)*R*.85,2.4,0,Math.PI*2); cx.fill(); }
+        const dx=mx-lx, dy=my-ly, dist=Math.hypot(dx,dy);
+        if(dist>2&&mode!=="text"){ const n=Math.min(Math.ceil(dist/9),6);
+          for(let i=0;i<n;i++){ const f=i/n;
+            puff(lx+dx*f,ly+dy*f,dx*.04+(Math.random()-.5)*.5,dy*.04+(Math.random()-.5)*.5,2+Math.random()*2.5,46+Math.random()*30); } }
+        lx=mx; ly=my;
+        cx.globalCompositeOperation=dark()?"lighter":"multiply";
+        for(let i=ink.length-1;i>=0;i--){ const p=ink[i];
+          /* cheap curl-ish flow field: smoke folds and rolls instead of drifting straight */
+          const a=Math.sin(p.x*.012+p.seed+t*.02)*Math.cos(p.y*.011-t*.017)*Math.PI*2;
+          p.vx=(p.vx+Math.cos(a)*.045)*.965; p.vy=(p.vy+Math.sin(a)*.045-.012)*.965;
+          p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt;
+          if(p.life<=0){ ink.splice(i,1); continue; }
+          const k=p.life/p.max, age=1-k, r=p.s+age*age*26;
+          const c=mix(p.c), al=(dark()?.16:.10)*Math.sin(Math.min(age*6,1)*Math.PI/2)*k;
+          const g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,r);
+          g.addColorStop(0,`rgba(${c},${al})`); g.addColorStop(.55,`rgba(${c},${al*.45})`); g.addColorStop(1,`rgba(${c},0)`);
+          cx.fillStyle=g; cx.beginPath(); cx.arc(p.x,p.y,r,0,Math.PI*2); cx.fill(); }
         cx.globalCompositeOperation="source-over";
       }
       requestAnimationFrame(loop);
-    })();
-    document.addEventListener("mouseover",e=>{ if(e.target.closest("[data-cursor],a,button,input,textarea,select,.project__head,.portrait")) ring.classList.add("hover"); });
-    document.addEventListener("mouseout", e=>{ if(e.target.closest("[data-cursor],a,button,input,textarea,select,.project__head,.portrait")) ring.classList.remove("hover"); });
+    })(last);
   }
 }
 
@@ -772,6 +799,7 @@ try{
     const total=nodes.reduce((a,o)=>a+o.t.length,0); if(!total) return;
     const dur=Math.min(1100,350+total*22), t0=performance.now();
     el.classList.add("scrambling");
+    el.style.height=el.getBoundingClientRect().height+"px";   /* random glyphs are wider: lock height so nothing below jumps */
     (function frame(now){
       const p=Math.min((now-t0)/dur,1), done=Math.floor(p*total);
       let k=0;
@@ -780,7 +808,7 @@ try{
         for(const ch of o.t){ out+=(k<done||/\s/.test(ch))?ch:(/[a-z]/.test(ch)?rand().toLowerCase():rand()); k++; }
         o.n.nodeValue=out;
       }
-      if(p<1) requestAnimationFrame(frame); else { nodes.forEach(o=>o.n.nodeValue=o.t); el.classList.remove("scrambling"); }
+      if(p<1) requestAnimationFrame(frame); else { nodes.forEach(o=>o.n.nodeValue=o.t); el.classList.remove("scrambling"); el.style.height=""; }
     })(t0);
   };
   const io=new IntersectionObserver(es=>es.forEach(en=>{ if(en.isIntersecting){ io.unobserve(en.target); scramble(en.target); } }),{threshold:.4});
