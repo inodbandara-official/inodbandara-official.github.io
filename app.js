@@ -1,3 +1,13 @@
+/* fresh gradient palette on every page load: pick a base hue at least 60deg
+   away from the previous one (styles.css derives every colour from --h) */
+(()=>{
+  let last=NaN; try{ last=parseFloat(localStorage.getItem("hue")); }catch(e){}
+  const far=h=>isNaN(last)||Math.min(Math.abs(h-last),360-Math.abs(h-last))>=60;
+  let h; do{ h=Math.floor(Math.random()*360); }while(!far(h));
+  document.documentElement.style.setProperty("--h",h);
+  try{ localStorage.setItem("hue",h); }catch(e){}
+})();
+
 /* =============================================================================
    ██  CONFIG  —  THE ONLY PLACE YOU NEED TO EDIT.
    Shared by index.html, about.html and contact.html. Change a value once and
@@ -519,7 +529,96 @@ if(matchMedia("(hover:hover) and (pointer:fine)").matches){
       dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
       const c=$("#crsr"); if(c) c.textContent=(mx/innerWidth).toFixed(3)+" · "+(my/innerHeight).toFixed(3);
     });
-    (function loop(){ rx+=(mx-rx)*.16; ry+=(my-ry)*.16; ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`; requestAnimationFrame(loop); })();
+    /* gradient cursor: springy ring, elastic comet tail, spark particles, click burst
+       and idle orbit. Colours glide through the page palette; ring borrows the hover-tint colour. */
+    const still=matchMedia("(prefers-reduced-motion:reduce)").matches;
+    /* resolve the hsl() colour tokens to rgb via a hidden probe element */
+    const probe=document.createElement("i"); probe.style.display="none"; document.body.appendChild(probe);
+    const rgbOf=n=>{ probe.style.color=`var(${n})`; return (getComputedStyle(probe).color.match(/[\d.]+/g)||[167,123,255]).slice(0,3).map(Number); };
+    let stops=[];
+    const readStops=()=>{ stops=["--c-cyan","--c-blue","--c-violet","--c-pink"].map(rgbOf); };
+    readStops(); new MutationObserver(readStops).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+    const mix=t=>{ t=((t%1)+1)%1; const f=t*stops.length, i=Math.floor(f), k=f-i, A=stops[i], B=stops[(i+1)%stops.length];
+      return A.map((v,j)=>Math.round(v+(B[j]-v)*k)); };
+    const cv=document.createElement("canvas"); cv.className="cursor-trail"; document.body.appendChild(cv);
+    const cx=cv.getContext("2d");
+    const fit=()=>{ const d=Math.min(devicePixelRatio||1,2); cv.width=innerWidth*d; cv.height=innerHeight*d; cx.setTransform(d,0,0,d,0,0); };
+    fit(); addEventListener("resize",fit);
+    const dark=()=>document.documentElement.getAttribute("data-theme")!=="light";
+    const rgba=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+
+    /* physics state:
+       ring  — spring with overshoot (wobbles when it lands)
+       tail  — chain of springy blobs, each chasing the one ahead (elastic comet)
+       sparks — particles flung off by fast moves and clicks; they swirl, drift and fade
+       orbit — when the mouse rests, three motes circle the cursor */
+    let vx=0, vy=0, phase=0, tint=null, lastMove=performance.now(), pmx=mx, pmy=my, orbitA=0, orbitT=0;
+    const TAIL=16, tail=Array.from({length:TAIL},()=>({x:mx,y:my,vx:0,vy:0}));
+    const sparks=[];
+    const spawn=(x,y,dx,dy,life,size)=>{ if(sparks.length<160) sparks.push({x,y,vx:dx,vy:dy,life,max:life,size,spin:(Math.random()-.5)*.3,c:phase+Math.random()*.5}); };
+
+    document.addEventListener("mouseover",e=>{
+      const el=e.target.closest("[style*='--hc']");
+      tint=el? getComputedStyle(el).getPropertyValue("--hc").trim()||null : null;
+    });
+    addEventListener("mousemove",()=>{ lastMove=performance.now(); });
+    addEventListener("mousedown",e=>{
+      if(still) return;
+      for(let i=0;i<26;i++){ const t=Math.PI*2*i/26+Math.random()*.2, v=2.5+Math.random()*4.5;
+        spawn(e.clientX,e.clientY,Math.cos(t)*v,Math.sin(t)*v,40+Math.random()*25,2+Math.random()*2.5); }
+      ring.animate([{scale:"1"},{scale:".55"},{scale:"1.25"},{scale:"1"}],{duration:520,easing:"cubic-bezier(.3,1.6,.5,1)"});
+    });
+
+    (function loop(now){
+      now=now||performance.now();
+      /* ring spring */
+      vx=(vx+(mx-rx)*.14)*.72; vy=(vy+(my-ry)*.14)*.72; rx+=vx; ry+=vy;
+      const sp=Math.min(Math.hypot(vx,vy)/28,.65), ang=Math.atan2(vy,vx)*180/Math.PI;
+      phase+=.0012;
+      const col=tint||`rgb(${mix(phase)})`;
+      ring.style.borderColor=col; dot.style.background=col;
+      ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%) rotate(${ang}deg) scale(${1+sp},${1-sp*.45})`;
+
+      cx.clearRect(0,0,innerWidth,innerHeight);
+      if(!still){
+        cx.globalCompositeOperation=dark()?"lighter":"source-over";
+        const speed=Math.hypot(mx-pmx,my-pmy); pmx=mx; pmy=my;
+
+        /* sparks flung off fast moves, thrown sideways from the direction of travel */
+        if(speed>6){ const n=Math.min(4,speed/10|0)+1;
+          for(let i=0;i<n;i++){ const side=Math.random()<.5?-1:1, nx=-(my-tail[0].y), ny=(mx-tail[0].x), L=Math.hypot(nx,ny)||1;
+            spawn(mx,my,(nx/L)*side*(1+Math.random()*1.8)-(vx*.08),(ny/L)*side*(1+Math.random()*1.8)-(vy*.08),26+Math.random()*24,1+Math.random()*2.2); } }
+
+        /* elastic tail: each blob springs toward the one ahead */
+        let tx=mx, ty=my;
+        for(let i=0;i<TAIL;i++){ const b=tail[i], k=.34-i*.012, d=.62;
+          b.vx=(b.vx+(tx-b.x)*k)*d; b.vy=(b.vy+(ty-b.y)*k)*d; b.x+=b.vx; b.y+=b.vy; tx=b.x; ty=b.y; }
+        for(let i=TAIL-1;i>=0;i--){ const b=tail[i], f=1-i/TAIL;
+          const r=1.2+f*f*7*(.35+Math.min(speed/18,1));
+          const c=mix(phase+.3*(i/TAIL));
+          const g=cx.createRadialGradient(b.x,b.y,0,b.x,b.y,r*2.2);
+          g.addColorStop(0,rgba(c,.55*f)); g.addColorStop(1,rgba(c,0));
+          cx.fillStyle=g; cx.beginPath(); cx.arc(b.x,b.y,r*2.2,0,Math.PI*2); cx.fill(); }
+
+        /* sparks: drag, gentle swirl, slight float upward, fade + shrink */
+        for(let i=sparks.length-1;i>=0;i--){ const p=sparks[i];
+          const cs=Math.cos(p.spin*.12), sn=Math.sin(p.spin*.12);
+          [p.vx,p.vy]=[(p.vx*cs-p.vy*sn)*.94,(p.vx*sn+p.vy*cs)*.94-.035];
+          p.x+=p.vx; p.y+=p.vy; p.life--;
+          if(p.life<=0){ sparks.splice(i,1); continue; }
+          const t=p.life/p.max, c=mix(p.c);
+          cx.fillStyle=rgba(c,.85*t); cx.beginPath(); cx.arc(p.x,p.y,p.size*(.4+.6*t),0,Math.PI*2); cx.fill(); }
+
+        /* idle orbit: motes fade in after the mouse rests */
+        const idle=now-lastMove>650;
+        orbitT+=((idle?1:0)-orbitT)*.06; orbitA+=.035;
+        if(orbitT>.02) for(let i=0;i<3;i++){ const a=orbitA+i*Math.PI*2/3, R=26+Math.sin(orbitA*2+i)*5;
+          const c=mix(phase+i*.25);
+          cx.fillStyle=rgba(c,.9*orbitT); cx.beginPath(); cx.arc(rx+Math.cos(a)*R,ry+Math.sin(a)*R*.85,2.4,0,Math.PI*2); cx.fill(); }
+        cx.globalCompositeOperation="source-over";
+      }
+      requestAnimationFrame(loop);
+    })();
     document.addEventListener("mouseover",e=>{ if(e.target.closest("[data-cursor],a,button,input,textarea,select,.project__head,.portrait")) ring.classList.add("hover"); });
     document.addEventListener("mouseout", e=>{ if(e.target.closest("[data-cursor],a,button,input,textarea,select,.project__head,.portrait")) ring.classList.remove("hover"); });
   }
@@ -621,17 +720,73 @@ try{
   console.log("%cPS — it was DNS. It's always DNS.", s2);
 }catch(e){}
 
-/* hover tint — each text line / card takes a fresh spectrum colour while the cursor is on it */
+/* hover tint — each text line / card takes a fresh gradient while the cursor is on it */
 (()=>{
   if(!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
   const TARGETS="main :is(p,li,h1,h2,h3,h4,h5,h6,blockquote,dt,dd,td,th,figcaption,.project,.stat,.chip,.dcell,.tech,.principle,.stack-col,.lesson,.tldr,.diag,.fit,.tl > *,hr)";
-  const HUES=["red","orange","yellow","green","cyan","blue","violet","pink"];
+  const GRADS=[["ocean","blue"],["dusk","pink"],["ember","pink"],["iris","violet"],["main","violet"]];
   let last=-1;
   document.addEventListener("mouseover",e=>{
     const el=e.target.closest(TARGETS);
     if(!el || el.closest(".term,.overlay,.nav") || el.contains(e.relatedTarget)) return;
-    let i; do{ i=Math.floor(Math.random()*HUES.length); }while(i===last);
+    let i; do{ i=Math.floor(Math.random()*GRADS.length); }while(i===last);
     last=i;
-    el.style.setProperty("--hc","var(--c-"+HUES[i]+")");
+    el.style.setProperty("--hg","var(--g-"+GRADS[i][0]+")");
+    el.style.setProperty("--hc","var(--c-"+GRADS[i][1]+")");
   });
+})();
+
+/* spotlight — cards track the cursor so their radial glow follows it */
+(()=>{
+  if(!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
+  const CARDS=".project,.stat,.chip,.dcell,.tech,.principle,.stack-col,.lesson,.tldr,.diag,.fit,.tl > *";
+  document.addEventListener("mousemove",e=>{
+    const el=e.target.closest&&e.target.closest("main :is("+CARDS+")");
+    if(!el) return;
+    const r=el.getBoundingClientRect();
+    el.style.setProperty("--mx",(e.clientX-r.left)+"px");
+    el.style.setProperty("--my",(e.clientY-r.top)+"px");
+  },{passive:true});
+})();
+
+/* parallax — background glow and grid lean away from the cursor; a soft light follows it */
+(()=>{
+  if(!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches) return;
+  const root=document.documentElement;
+  const light=document.createElement("div"); light.className="bg-light"; document.body.prepend(light);
+  let tx=0,ty=0,x=0,y=0;
+  addEventListener("mousemove",e=>{ tx=e.clientX/innerWidth-.5; ty=e.clientY/innerHeight-.5; },{passive:true});
+  (function tick(){
+    x+=(tx-x)*.05; y+=(ty-y)*.05;
+    root.style.setProperty("--px",x.toFixed(4)); root.style.setProperty("--py",y.toFixed(4));
+    light.style.setProperty("--lx",((x+.5)*innerWidth).toFixed(1)+"px"); light.style.setProperty("--ly",((y+.5)*innerHeight).toFixed(1)+"px");
+    requestAnimationFrame(tick);
+  })();
+})();
+
+/* scramble — headings decode from random glyphs the first time they scroll into view */
+(()=>{
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches || !("IntersectionObserver" in window)) return;
+  const GLYPHS="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&/<>_*";
+  const rand=()=>GLYPHS[Math.floor(Math.random()*GLYPHS.length)];
+  const scramble=el=>{
+    const nodes=[]; const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);
+    while(w.nextNode()) if(w.currentNode.nodeValue.trim()) nodes.push({n:w.currentNode,t:w.currentNode.nodeValue});
+    const total=nodes.reduce((a,o)=>a+o.t.length,0); if(!total) return;
+    const dur=Math.min(1100,350+total*22), t0=performance.now();
+    el.classList.add("scrambling");
+    (function frame(now){
+      const p=Math.min((now-t0)/dur,1), done=Math.floor(p*total);
+      let k=0;
+      for(const o of nodes){
+        let out="";
+        for(const ch of o.t){ out+=(k<done||/\s/.test(ch))?ch:(/[a-z]/.test(ch)?rand().toLowerCase():rand()); k++; }
+        o.n.nodeValue=out;
+      }
+      if(p<1) requestAnimationFrame(frame); else { nodes.forEach(o=>o.n.nodeValue=o.t); el.classList.remove("scrambling"); }
+    })(t0);
+  };
+  const io=new IntersectionObserver(es=>es.forEach(en=>{ if(en.isIntersecting){ io.unobserve(en.target); scramble(en.target); } }),{threshold:.4});
+  document.querySelectorAll("main :is(h1,h2,h3)").forEach(h=>io.observe(h));
 })();

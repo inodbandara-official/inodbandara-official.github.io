@@ -529,99 +529,130 @@ html[data-theme="light"] .tech:hover img{ filter:grayscale(1) brightness(0) inve
 @media (max-width:430px){ .tech-grid{ grid-template-columns:repeat(auto-fill, minmax(84px,1fr)); gap:9px; } .tech{ padding:18px 8px 13px; } .tech img{ width:34px; height:34px; } }
 
 /* =============================================================================
-   SPECTRUM COLOUR LAYER
-   Multi-hue palette on top of the base system. Remove this block to revert
-   to the original single-amber look.
+   GRADIENT COLOUR LAYER
+   Cool blue / violet / pink gradient palette on top of the base system.
+   Remove this block to revert to the original single-amber look.
    ============================================================================= */
+@property --sr{syntax:"<length>"; inherits:false; initial-value:0px}
+
 :root{
   --bg:#0b0a14; --bg-1:#12111f; --bg-2:#1a1830;
   --line:#262440; --line-2:#34315a;
   --text:#ece9f5; --muted:#9a96b3; --faint:#625e7d;
 
-  --c-red:#ff5d6c; --c-orange:#ff9f43; --c-yellow:#ffd23f; --c-green:#3ddc97;
-  --c-cyan:#2ed3e6; --c-blue:#5b8cff; --c-violet:#a77bff; --c-pink:#ff5fb8;
+  /* --h = base hue; app.js picks a new one on every page load */
+  --h:260;
+  --c-cyan:hsl(calc(var(--h) - 73) 80% 55%); --c-blue:hsl(calc(var(--h) - 37) 100% 68%);
+  --c-violet:hsl(var(--h) 100% 74%); --c-pink:hsl(calc(var(--h) + 66) 100% 69%); --c-peach:hsl(calc(var(--h) + 115) 100% 74%);
+  --c-green:#3ddc97; --c-red:#ff5d6c;
 
-  --accent:var(--c-violet); --accent-ink:#0b0a14; --accent-dim:rgba(167,123,255,.16);
-  --spectrum:linear-gradient(90deg,var(--c-red),var(--c-orange),var(--c-yellow),var(--c-green),var(--c-cyan),var(--c-blue),var(--c-violet),var(--c-pink));
-  --aurora-a:rgba(167,123,255,.22); --aurora-b:rgba(46,211,230,.16); --aurora-c:rgba(255,95,184,.14);
+  --accent:var(--c-violet); --accent-ink:#0b0a14; --accent-dim:hsl(var(--h) 100% 74% / .16);
+  --spot:hsl(var(--h) 100% 74% / .13);
+  --aurora-a:hsl(var(--h) 100% 74% / .22); --aurora-b:hsl(calc(var(--h) - 37) 100% 68% / .16); --aurora-c:hsl(calc(var(--h) + 66) 100% 69% / .13);
 }
 html[data-theme="light"]{
   --bg:#f6f4fb; --bg-1:#ffffff; --bg-2:#eeebf6;
   --line:#dcd8ea; --line-2:#c9c4dd;
   --text:#16142a; --muted:#5a5675; --faint:#8e8aa8;
 
-  --c-red:#d6334a; --c-orange:#c8610a; --c-yellow:#a87a00; --c-green:#138a5a;
-  --c-cyan:#0a8597; --c-blue:#2f5fe0; --c-violet:#7444e0; --c-pink:#c92c86;
+  --c-cyan:hsl(calc(var(--h) - 73) 88% 31%); --c-blue:hsl(calc(var(--h) - 37) 75% 46%);
+  --c-violet:hsl(var(--h) 72% 52%); --c-pink:hsl(calc(var(--h) + 66) 65% 48%); --c-peach:hsl(calc(var(--h) + 115) 65% 47%);
+  --c-green:#138a5a; --c-red:#d6334a;
 
-  --accent:var(--c-violet); --accent-ink:#fff; --accent-dim:rgba(116,68,224,.12);
-  --aurora-a:rgba(116,68,224,.14); --aurora-b:rgba(10,133,151,.10); --aurora-c:rgba(201,44,134,.09);
+  --accent:var(--c-violet); --accent-ink:#fff; --accent-dim:hsl(var(--h) 72% 52% / .12);
+  --spot:hsl(var(--h) 72% 52% / .09);
+  --aurora-a:hsl(var(--h) 72% 52% / .14); --aurora-b:hsl(calc(var(--h) - 37) 75% 46% / .10); --aurora-c:hsl(calc(var(--h) + 66) 65% 48% / .08);
+}
+/* the gradient set (resolved per theme because they reference the colour tokens) */
+:root,html[data-theme="light"]{
+  --g-main:linear-gradient(120deg,var(--c-blue),var(--c-violet) 50%,var(--c-pink));
+  --g-ocean:linear-gradient(120deg,var(--c-cyan),var(--c-blue));
+  --g-dusk:linear-gradient(120deg,var(--c-violet),var(--c-pink));
+  --g-ember:linear-gradient(120deg,var(--c-pink),var(--c-peach));
+  --g-iris:linear-gradient(120deg,var(--c-blue),var(--c-violet));
+  --hg:var(--g-main);
 }
 
-/* aurora glow behind everything */
+/* aurora glow behind everything — drifts slowly and leans away from the cursor (--px/--py set in app.js) */
 body::after{
   content:""; position:fixed; inset:-20%; z-index:0; pointer-events:none;
   background:
     radial-gradient(40% 35% at 15% 10%,var(--aurora-a),transparent 70%),
     radial-gradient(35% 30% at 90% 25%,var(--aurora-b),transparent 70%),
     radial-gradient(45% 40% at 60% 95%,var(--aurora-c),transparent 70%);
+  translate:calc(var(--px,0) * -320px) calc(var(--py,0) * -240px);
   animation:aurora 24s ease-in-out infinite alternate;
 }
+body::before{translate:calc(var(--px,0) * 48px) calc(var(--py,0) * 48px)}
+/* ambient light that trails the cursor across the page (--lx/--ly set in app.js) */
+.bg-light{position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:radial-gradient(520px circle at var(--lx,50%) var(--ly,30%),var(--aurora-a),transparent 65%),
+             radial-gradient(260px circle at var(--lx,50%) var(--ly,30%),var(--aurora-c),transparent 70%)}
+@media (hover:none),(pointer:coarse){.bg-light{display:none}}
 @keyframes aurora{to{transform:translate3d(4%,-3%,0) rotate(6deg)}}
-@media (prefers-reduced-motion:reduce){body::after{animation:none}}
+@media (prefers-reduced-motion:reduce){body::after{animation:none; translate:none} body::before{translate:none} .bg-light{display:none}}
 
-/* rainbow strip along the top of the nav */
-.nav::after{content:""; position:absolute; left:0; right:0; top:0; height:2px; background:var(--spectrum); opacity:.85}
+/* gradient strip along the top of the nav */
+.nav::after{content:""; position:absolute; left:0; right:0; top:0; height:2px; background:var(--g-main); opacity:.85}
 
 /* gradient text accents */
 .brand b,.hero h1 .dot,.contact-hero h1 .dot,.nf h1 .dot,
 .about-lead em,.bio p.lede em,.cta-band h2 em,.ah__statement em,.stat .num em{
-  background:var(--spectrum); -webkit-background-clip:text; background-clip:text; color:transparent;
+  background:var(--g-main); -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 .hero .thesis{color:var(--c-cyan)}
 .meta-row .status,.tl__when .now{color:var(--c-green)}
 
-/* nav: each link its own hue */
-.nav-links a:nth-child(8n+1){--hue:var(--c-red)}
-.nav-links a:nth-child(8n+2){--hue:var(--c-orange)}
-.nav-links a:nth-child(8n+3){--hue:var(--c-yellow)}
-.nav-links a:nth-child(8n+4){--hue:var(--c-green)}
-.nav-links a:nth-child(8n+5){--hue:var(--c-cyan)}
-.nav-links a:nth-child(8n+6){--hue:var(--c-blue)}
-.nav-links a:nth-child(8n+7){--hue:var(--c-violet)}
-.nav-links a:nth-child(8n+8){--hue:var(--c-pink)}
+/* nav links cycle through the gradient stops */
+.nav-links a:nth-child(4n+1){--hue:var(--c-cyan)}
+.nav-links a:nth-child(4n+2){--hue:var(--c-blue)}
+.nav-links a:nth-child(4n+3){--hue:var(--c-violet)}
+.nav-links a:nth-child(4n+4){--hue:var(--c-pink)}
 .nav-links a:hover,.nav-links a[aria-current="page"],
 .nav-links a[aria-current="page"] .idx{color:var(--hue,var(--accent))}
 
 /* buttons */
-.btn.primary{background:linear-gradient(120deg,var(--c-violet),var(--c-pink) 55%,var(--c-orange)); border-color:transparent; color:#fff}
-.btn.primary:hover{background:linear-gradient(120deg,var(--c-cyan),var(--c-blue) 50%,var(--c-violet)); color:#fff}
-.term-launch{background:linear-gradient(120deg,var(--c-violet),var(--c-pink)); color:#fff}
-.scroll-cue .bar::after{background:var(--spectrum)}
+.btn.primary{background:var(--g-dusk); border-color:transparent; color:#fff}
+.btn.primary:hover{background:var(--g-ocean); color:#fff}
+.term-launch{background:var(--g-dusk); color:#fff}
+.scroll-cue .bar::after{background:var(--g-main)}
 
-/* repeated items: rotate the accent through the spectrum */
-:is(.project,.stat,.principle,.stack-col,.tech,.chip,.dcell,.comp li,.lesson,.case-section,.marquee span,.tl > *,.edu > *,.socials a):nth-child(8n+1){--accent:var(--c-red)}
-:is(.project,.stat,.principle,.stack-col,.tech,.chip,.dcell,.comp li,.lesson,.case-section,.marquee span,.tl > *,.edu > *,.socials a):nth-child(8n+2){--accent:var(--c-orange)}
-:is(.project,.stat,.principle,.stack-col,.tech,.chip,.dcell,.comp li,.lesson,.case-section,.marquee span,.tl > *,.edu > *,.socials a):nth-child(8n+3){--accent:var(--c-yellow)}
-:is(.project,.stat,.principle,.stack-col,.tech,.chip,.dcell,.comp li,.lesson,.case-section,.marquee span,.tl > *,.edu > *,.socials a):nth-child(8n+4){--accent:var(--c-green)}
-:is(.project,.stat,.principle,.stack-col,.tech,.chip,.dcell,.comp li,.lesson,.case-section,.marquee span,.tl > *,.edu > *,.socials a):nth-child(8n+5){--accent:var(--c-cyan)}
-:is(.project,.stat,.principle,.stack-col,.tech,.chip,.dcell,.comp li,.lesson,.case-section,.marquee span,.tl > *,.edu > *,.socials a):nth-child(8n+6){--accent:var(--c-blue)}
-:is(.project,.stat,.principle,.stack-col,.tech,.chip,.dcell,.comp li,.lesson,.case-section,.marquee span,.tl > *,.edu > *,.socials a):nth-child(8n+7){--accent:var(--c-violet)}
-:is(.project,.stat,.principle,.stack-col,.tech,.chip,.dcell,.comp li,.lesson,.case-section,.marquee span,.tl > *,.edu > *,.socials a):nth-child(8n+8){--accent:var(--c-pink)}
+/* repeated items: accent steps through the gradient stops */
+:is(.project,.stat,.principle,.stack-col,.tech,.chip,.dcell,.comp li,.lesson,.case-section,.marquee span,.tl > *,.edu > *,.socials a):nth-child(4n+1){--accent:var(--c-cyan)}
+:is(.project,.stat,.principle,.stack-col,.tech,.chip,.dcell,.comp li,.lesson,.case-section,.marquee span,.tl > *,.edu > *,.socials a):nth-child(4n+2){--accent:var(--c-blue)}
+:is(.project,.stat,.principle,.stack-col,.tech,.chip,.dcell,.comp li,.lesson,.case-section,.marquee span,.tl > *,.edu > *,.socials a):nth-child(4n+3){--accent:var(--c-violet)}
+:is(.project,.stat,.principle,.stack-col,.tech,.chip,.dcell,.comp li,.lesson,.case-section,.marquee span,.tl > *,.edu > *,.socials a):nth-child(4n+4){--accent:var(--c-pink)}
 
 /* status colours */
 .fit.good h4,.fit.good li::before,.diag .ok{color:var(--c-green)}
 .diag .bad{color:var(--c-red)}
-.tldr,.dont,.diag{border-left-color:var(--c-cyan)}
-.tldr h4{color:var(--c-cyan)}
+.tldr,.dont,.diag{border-left-color:var(--c-blue)}
+.tldr h4{color:var(--c-blue)}
 .tech:hover{box-shadow:0 8px 28px -10px var(--accent)}
 
-/* hover tint — colour picked in app.js, reverts on mouse-out via transition */
-main :is(p,li,h1,h2,h3,h4,h5,h6,blockquote,dt,dd,td,th,figcaption){transition:color .35s var(--ease)}
-main :is(.project,.stat,.chip,.dcell,.tech,.principle,.stack-col,.lesson,.tldr,.diag,.fit,.tl > *){transition:border-color .35s var(--ease),color .35s var(--ease),transform .25s var(--ease),box-shadow .25s var(--ease),background .25s var(--ease)}
+/* hover tint — gradient picked in app.js (--hg text fill, --hc solid for borders); fades back on mouse-out */
+main :is(p,li,h1,h2,h3,h4,h5,h6,blockquote,dt,dd,td,th,figcaption){background-image:var(--hg); -webkit-background-clip:text; background-clip:text; transition:color .35s var(--ease)}
+main :is(.project,.stat,.chip,.dcell,.tech,.principle,.stack-col,.lesson,.tldr,.diag,.fit,.tl > *){transition:border-color .35s var(--ease),color .35s var(--ease),transform .25s var(--ease),box-shadow .25s var(--ease),background-color .25s var(--ease),--sr .45s var(--ease)}
 main hr{transition:border-color .35s var(--ease),background .35s var(--ease)}
 @media (hover:hover) and (pointer:fine){
-  main :is(p,li,h1,h2,h3,h4,h5,h6,blockquote,dt,dd,td,th,figcaption):hover{color:var(--hc,var(--accent)) !important}
+  main :is(p,li,h1,h2,h3,h4,h5,h6,blockquote,dt,dd,td,th,figcaption):hover{color:transparent !important}
   main :is(.project,.stat,.chip,.dcell,.tech,.principle,.stack-col,.lesson,.tldr,.diag,.fit,.tl > *):hover{border-color:var(--hc,var(--accent))}
-  main :is(.project,.stat,.principle,.lesson):hover :is(h3,h4,.project__title){color:var(--hc,var(--accent))}
+  main :is(.project,.stat,.principle,.lesson):hover :is(h3,h4){color:transparent}
   main hr:hover{border-color:var(--hc,var(--accent)); background:var(--hc,var(--accent))}
+
+  /* spotlight: soft glow follows the cursor inside cards (--mx/--my set in app.js) */
+  main :is(.project,.stat,.chip,.dcell,.tech,.principle,.stack-col,.lesson,.tldr,.diag,.fit,.tl > *),main :is(.project,.stat,.chip,.dcell,.tech,.principle,.stack-col,.lesson,.tldr,.diag,.fit,.tl > *):hover{
+    background-image:radial-gradient(var(--sr) circle at var(--mx,50%) var(--my,50%),var(--spot),transparent 100%);
+  }
+  main :is(.project,.stat,.chip,.dcell,.tech,.principle,.stack-col,.lesson,.tldr,.diag,.fit,.tl > *):hover{--sr:260px}
 }
+
+/* scramble-in headings (app.js) */
+.scrambling{font-variant-ligatures:none}
+
+/* gradient cursor (driven by app.js) */
+.cursor,.cursor-ring{mix-blend-mode:normal}
+.cursor{transition:background .3s}
+.cursor-ring{border-width:1.5px; transition:width .25s var(--ease),height .25s var(--ease),opacity .25s,border-color .3s}
+.cursor-trail{position:fixed; inset:0; width:100vw; height:100vh; z-index:9998; pointer-events:none}
+@media (hover:none),(pointer:coarse){.cursor-trail{display:none}}
